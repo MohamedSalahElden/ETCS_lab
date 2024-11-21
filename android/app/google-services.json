@@ -1,0 +1,90 @@
+{
+  "project_info": {
+    "project_number": "500675737228",
+    "project_id": "lab-manager-748e8",
+    "storage_bucket": "lab-manager-748e8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:500675737228:android:1014a91f38e3067df82da9",
+        "android_client_info": {
+          "package_name": "com.salah.labsystem.demo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "500675737228-d172eo04ou7aqu4jpftde5a9hsmovmgi.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCaL8qlb9fCSyHtHu3M0JLnTZ7oX0GjadI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "500675737228-d172eo04ou7aqu4jpftde5a9hsmovmgi.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "500675737228-3tj08dclcb21hpiu83op7kt6vl4oeqnv.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.salah.labsystem.demo"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:500675737228:android:97c9083d7797ba22f82da9",
+        "android_client_info": {
+          "package_name": "org.cert.etcs.lab"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "500675737228-fkvcmv82lvoh85vh0d998vshi1uls91d.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "org.cert.etcs.lab",
+            "certificate_hash": "2a386b92e598958a24c23cf9985f7f3c24ef12c7"
+          }
+        },
+        {
+          "client_id": "500675737228-d172eo04ou7aqu4jpftde5a9hsmovmgi.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCaL8qlb9fCSyHtHu3M0JLnTZ7oX0GjadI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "500675737228-d172eo04ou7aqu4jpftde5a9hsmovmgi.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "500675737228-3tj08dclcb21hpiu83op7kt6vl4oeqnv.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.salah.labsystem.demo"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
