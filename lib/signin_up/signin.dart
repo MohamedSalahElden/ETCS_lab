@@ -14,9 +14,12 @@ class _AuthPageState extends State<AuthPage> {
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  
+  // Controllers for first and last name
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
 
   bool _isLogin = true;
-
 
   @override
   void initState() {
@@ -37,44 +40,64 @@ class _AuthPageState extends State<AuthPage> {
       _isLogin = !_isLogin;
     });
   }
-Future<void> _submit() async {
-  try {
-    final email = _emailController.text.trim();
-    final password = _passwordController.text.trim();
 
-    if (_isLogin) {
-      // Sign In
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(email: email, password: password);
-      
-      // Check if the user is signed in before navigating
-      if (userCredential.user != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Signed in successfully!')),
-        );
-        
-        // Navigate to the home page after a successful sign-in
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const MyHomePage()),
-        );
-      }
-    } else {
-      // Sign Up
-      await _auth.createUserWithEmailAndPassword(email: email, password: password);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Signed up successfully!')),
-      );
+  Future<void> _submit() async {
+    try {
+      final email = _emailController.text.trim();
+      final password = _passwordController.text.trim();
+      final firstName = _firstNameController.text.trim();  // First name input
+      final lastName = _lastNameController.text.trim();    // Last name input
+
+      if (_isLogin) {
+        // Sign In
+        UserCredential userCredential = await _auth.signInWithEmailAndPassword(email: email, password: password);
+
+        if (userCredential.user != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Signed in successfully!')),
+          );
+          
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const MyHomePage()),
+          );
+        }
+      } else{
+          try {
+            // Sign Up
+            UserCredential userCredential = await _auth.createUserWithEmailAndPassword(email: email, password: password);
+            
+            // Ensure the user is created and userCredential.user is not null
+            if (userCredential.user != null) {
+              // After signing up, update the first and last name
+              await userCredential.user?.updateDisplayName('$firstName $lastName');
+
+              // Check if the widget is still mounted before using BuildContext
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Signed up successfully!')),
+                );
+
+                // Navigate to the home page after successful sign-up
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const MyHomePage()),
+                );
+              }
+            } else {
+              throw Exception('User creation failed');
+            }
+          } catch (e) {
+            // Handle errors
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+            }
+          }
+        }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
     }
-  } catch (e) {
-    print("-----------------------------------------");
-    print("--------------------exception---------------");
-    print("-----------------------------------------");
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
   }
-}
-
-  // mohamed.salah5369@gmail.com
-  // password
 
   @override
   Widget build(BuildContext context) {
@@ -96,6 +119,20 @@ Future<void> _submit() async {
               decoration: const InputDecoration(labelText: 'Password'),
               obscureText: true,
             ),
+            const SizedBox(height: 10),
+            // New field for first name
+            if (!_isLogin)
+              TextField(
+                controller: _firstNameController,
+                decoration: const InputDecoration(labelText: 'First Name'),
+              ),
+            const SizedBox(height: 10),
+            // New field for last name
+            if (!_isLogin)
+              TextField(
+                controller: _lastNameController,
+                decoration: const InputDecoration(labelText: 'Last Name'),
+              ),
             const SizedBox(height: 20),
             ElevatedButton(
               style: ElevatedButton.styleFrom(

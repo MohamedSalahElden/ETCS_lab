@@ -34,7 +34,41 @@ class AuthService {
     }
   }
 
-  
+  static String getUserFirstName() {
+    User? user = FirebaseAuth.instance.currentUser;
+
+    String? firstName = user?.displayName?.split(' ')[0];
+
+    // Use the first name (e.g., in a welcome message)
+    if (firstName != null) {
+      return firstName ;
+      // Pass it to the home page or use it elsewhere
+    }
+    else {
+      // Return a message if no user is signed in
+      return "";
+    }
+
+
+  } 
+
+
+
+   static String getUserFullName() {
+  User? user = FirebaseAuth.instance.currentUser;
+
+  // Get the full name from the displayName property
+  String? fullName = user?.displayName;
+
+  if (fullName != null && fullName.isNotEmpty) {
+    return fullName;
+  } else {
+    // Return a default message or an empty string if no full name is found
+    return "";
+  }
+}
+
+
 
 
 

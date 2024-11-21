@@ -16,6 +16,11 @@ class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
   late List<Widget> _pages; // Declare _pages as a late variable
 
+  
+
+
+
+
   @override
   void initState() {
     super.initState();
@@ -76,15 +81,28 @@ class _MyHomePageState extends State<MyHomePage> {
                 color: Color(0xffbf1e2e),
               ),
               child: Center(
-                  child: Text(
-                    AuthService.getUserEmail(),
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min, // Align content vertically and center it
+                  children: [
+                    Text(
+                      "Welcome",
+                      style: TextStyle(
+                        color: Colors.white,
+                        
+                        fontSize: 20,
+                      ),
                     ),
-                  ),
+                    Text(
+                      "${AuthService.getUserFullName()}",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                      ),
+                    ),
+                  ],
                 ),
+              ),
             ),
             ListTile(
               title: const Text('Logout'),
