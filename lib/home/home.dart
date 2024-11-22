@@ -1,4 +1,7 @@
 
+import 'package:etcs_lab_manager/home/subpages/myitems.dart';
+import 'package:etcs_lab_manager/home/subpages/scan.dart';
+import 'package:etcs_lab_manager/home/subpages/search.dart';
 import 'package:etcs_lab_manager/signin_up/auth_service.dart';
 import 'package:etcs_lab_manager/signin_up/signin.dart';
 import 'package:flutter/material.dart';
@@ -6,18 +9,54 @@ import 'package:flutter/material.dart';
 
 class MyHomePage extends StatefulWidget {
 
-  const MyHomePage({Key? key,}) : super(key: key);
+  final List<Map<String, dynamic>> user_borrowed_items; // Declare a field for user_borrowed_items
+  final List<Map<String, dynamic>> all_items; // Declare a field for all_items
+
+  const MyHomePage({
+    Key? key,
+    required this.user_borrowed_items,
+    required this.all_items,
+  }) : super(key: key);
+
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+
+
   int _selectedIndex = 0;
   late List<Widget> _pages; // Declare _pages as a late variable
 
   
 
+  List<Map<String, dynamic>> electronicComponents = [
+    {
+      "Item": "Resistor",
+      "value": "10kΩ",
+      "type": "Passive",
+      "QTY": 100,
+    },
+    {
+      "Item": "Capacitor",
+      "value": "100µF",
+      "type": "Passive",
+      "QTY": 50,
+    },
+    {
+      "Item": "Microcontroller",
+      "model": "STM32F103",
+      "type": "Active",
+      "QTY": 10,
+    },
+    {
+      "Item": "Diode",
+      "model": "1N4148",
+      "type": "Passive",
+      "QTY": 200,
+    },
+  ];
 
 
 
@@ -25,9 +64,9 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     _pages = [
-      Text("my items"),
-      Text("all items"),
-      Text("scanner"),
+      MyItems(user_items: widget.user_borrowed_items,),
+      AllItems(all_items: widget.all_items), // Access widget.all_items here
+      const QRScanner(),
     ];
   }
 
@@ -45,6 +84,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      
 
       appBar: AppBar(
         backgroundColor: Color(0xffbf1e2e),
@@ -77,14 +117,14 @@ class _MyHomePageState extends State<MyHomePage> {
           padding: EdgeInsets.zero,
           children: [
              DrawerHeader(
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: Color(0xffbf1e2e),
               ),
               child: Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min, // Align content vertically and center it
                   children: [
-                    Text(
+                    const Text(
                       "Welcome",
                       style: TextStyle(
                         color: Colors.white,
@@ -93,8 +133,8 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
                     ),
                     Text(
-                      "${AuthService.getUserFullName()}",
-                      style: TextStyle(
+                      AuthService.getUserFullName(),
+                      style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                         fontSize: 20,
@@ -104,6 +144,13 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
             ),
+            ListTile(
+              title: const Text('Options'),
+              selected: _selectedIndex == 0,
+              onTap: () {},
+            ),
+
+
             ListTile(
               title: const Text('Logout'),
               selected: _selectedIndex == 0,
@@ -118,6 +165,9 @@ class _MyHomePageState extends State<MyHomePage> {
                   );
               },
             ),
+            
+
+
             
           ],
         ),

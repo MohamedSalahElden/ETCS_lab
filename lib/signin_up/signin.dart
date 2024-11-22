@@ -1,6 +1,8 @@
 import 'package:etcs_lab_manager/home/home.dart';
+import 'package:etcs_lab_manager/signin_up/data/data.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class AuthPage extends StatefulWidget {
   const AuthPage({super.key});
@@ -24,15 +26,7 @@ class _AuthPageState extends State<AuthPage> {
   @override
   void initState() {
     super.initState();
-    _auth.authStateChanges().listen((User? user) {
-      if (user != null) {
-        // User is signed in, navigate to the home screen
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const MyHomePage()),
-        );
-      }
-    });
+    
   }
 
   void _toggleFormMode() {
@@ -41,7 +35,7 @@ class _AuthPageState extends State<AuthPage> {
     });
   }
 
-  Future<void> _submit() async {
+  Future<bool> _submit() async {
     try {
       final email = _emailController.text.trim();
       final password = _passwordController.text.trim();
@@ -56,10 +50,12 @@ class _AuthPageState extends State<AuthPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Signed in successfully!')),
           );
+
+          // await Provider.of<ComponentProvider>(context, listen: false).initializeComponents();
           
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const MyHomePage()),
+            MaterialPageRoute(builder: (context) => const MyHomePage(user_borrowed_items: [], all_items: [],)),
           );
         }
       } else{
@@ -77,11 +73,11 @@ class _AuthPageState extends State<AuthPage> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Signed up successfully!')),
                 );
-
+                await Provider.of<ComponentProvider>(context, listen: false).initializeComponents();
                 // Navigate to the home page after successful sign-up
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => const MyHomePage()),
+                  MaterialPageRoute(builder: (context) => const MyHomePage(user_borrowed_items: [], all_items: [],)),
                 );
               }
             } else {
@@ -92,11 +88,14 @@ class _AuthPageState extends State<AuthPage> {
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
             }
+            return false;
           }
         }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+      return false;
     }
+    return true;
   }
 
   @override
@@ -139,7 +138,10 @@ class _AuthPageState extends State<AuthPage> {
                 backgroundColor: const Color(0xffbf1e2e),
                 minimumSize: const Size(double.infinity, 50), // Full width and custom height
               ),
-              onPressed: _submit,
+              onPressed: () async {
+                _submit() ;
+                await Provider.of<ComponentProvider>(context, listen: false).initializeComponents();
+                },
               child: Text(
                 _isLogin ? 'Sign In' : 'Sign Up',
                 style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
