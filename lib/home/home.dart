@@ -1,17 +1,20 @@
 
-import 'package:etcs_lab_manager/home/subpages/myitems.dart';
+
 import 'package:etcs_lab_manager/home/subpages/myitemsv2.dart';
 import 'package:etcs_lab_manager/home/subpages/scan.dart';
 import 'package:etcs_lab_manager/home/subpages/search.dart';
 import 'package:etcs_lab_manager/signin_up/auth_service.dart';
+import 'package:etcs_lab_manager/signin_up/data/data.dart';
 import 'package:etcs_lab_manager/signin_up/signin.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 
 class MyHomePage extends StatefulWidget {
 
   final List<Map<String, dynamic>> user_borrowed_items; // Declare a field for user_borrowed_items
   final List<Map<String, dynamic>> all_items; // Declare a field for all_items
+  
 
   const MyHomePage({
     Key? key,
@@ -19,13 +22,19 @@ class MyHomePage extends StatefulWidget {
     required this.all_items,
   }) : super(key: key);
 
+  
+
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-
+  
+  int searchClickedIndex = 0;
+  bool _isSearching = false; // Flag to control the search mode
+  TextEditingController _searchController = TextEditingController();
+  
 
   int _selectedIndex = 0;
   late List<Widget> _pages; // Declare _pages as a late variable
@@ -38,30 +47,70 @@ class _MyHomePageState extends State<MyHomePage> {
       AllItems(all_items: widget.all_items), // Access widget.all_items here
       const QRScanner(),
     ];
+    
   }
 
   void _onItemTapped(int index) {
+    _isSearching = false;
     setState(() {
       _selectedIndex = index;
     });
   }
 
 
- 
 
+  
+
+
+
+    void _updateWithSearchedItems(String string){
+      if (_selectedIndex == 0){
+        if(string == ""){
+          myItemsGlobalUpdateFunction(false);
+        }
+        else{
+          myItemsGlobalUpdateFunction(true);
+          print("[search] $string" );
+          Provider.of<ComponentProvider>(context, listen: false).searchOnUserComponents(string);
+        }
+      }
+      else if(_selectedIndex == 1){
+        if(string == ""){
+          globalUpdateFunction(false);
+        }
+        else{
+          globalUpdateFunction(true);
+          print("[search] $string" );
+          Provider.of<ComponentProvider>(context, listen: false).searchOnAllComponents(string);
+        }
+      }
+      
+      
+    
+    }
 
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      
-
       appBar: AppBar(
-        backgroundColor: Color(0xffbf1e2e),
-        title: const Text(
-          'ETCS Lab',
-          style: TextStyle(color: Colors.white),
-        ),
+        backgroundColor: const Color(0xffbf1e2e),
+        title: _isSearching
+            ? TextField(
+                onChanged: (searchString) => _updateWithSearchedItems(searchString),
+                controller: _searchController,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  hintText: "Search...",
+                  hintStyle: TextStyle(color: Colors.white),
+                  border: InputBorder.none,
+                ),
+                style: TextStyle(color: Colors.white),
+              )
+            : const Text(
+                'ETCS Lab',
+                style: TextStyle(color: Colors.white),
+              ),
         leading: Builder(
           builder: (context) {
             return IconButton(
@@ -71,9 +120,35 @@ class _MyHomePageState extends State<MyHomePage> {
               },
             );
           },
-        ),
-      ),
+        ),   
+        actions: [
+          // Display search icon when not searching
+          if (!_isSearching)
+            if (_selectedIndex == 0 || _selectedIndex == 1)
+            IconButton(
+              
+              icon: const Icon(Icons.search, color: Colors.white),
+              onPressed: () {
+                setState(() {
+                  _isSearching = true; // Enable search mode
+                });
+              },
+            ),
+          // Display cancel icon when searching
+          if (_isSearching)
+            IconButton(
+              icon: const Icon(Icons.cancel, color: Colors.white),
+              onPressed: () {
+                setState(() {
+                  _isSearching = false; // Disable search mode
+                  _searchController.clear(); // Clear search text
+                });
+              },
+            ),
 
+        ],     
+      ),
+      
 
       body: _pages[_selectedIndex], // Use the dynamically initialized _pages
       

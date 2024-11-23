@@ -12,11 +12,16 @@ class AllItems extends StatefulWidget {
 
   @override
   _AllItemsState createState() => _AllItemsState();
+
+
 }
 
-class _AllItemsState extends State<AllItems> {
-  int? _expandedIndex; // Track the currently expanded item index
+late Function(bool) globalUpdateFunction;
 
+class _AllItemsState extends State<AllItems> {
+  
+  int? _expandedIndex; // Track the currently expanded item index
+  bool _isSearch = false;
   // change colors base on item availability
   Map<String, Color> getItemAvailabilityColor(int numberOfItems, String category) {
     Color iconColor = getCategoryColor(category);
@@ -51,10 +56,34 @@ class _AllItemsState extends State<AllItems> {
     return Color.fromARGB(255, red, green, blue);
   }
 
+
+@override
+void initState() {
+  super.initState();
+  globalUpdateFunction = setIsSearch; // Store the function reference
+}
+
+void setIsSearch(bool value) {
+    setState(() {
+      _isSearch = value;
+    });
+  }
+
+
   @override
   Widget build(BuildContext context) {
     final componentProvider = Provider.of<ComponentProvider>(context, listen: true);
-    final allComponents = componentProvider.allComponents;
+    List<Map<String , dynamic>> allComponents = [{}];
+    if (_isSearch == true){
+       allComponents = componentProvider.componentsToView;
+       print("[search] get data from compenetnsToView");
+    }
+    else if (_isSearch == false){
+      allComponents = componentProvider.allComponents;
+      print("[search] getting data from allComponents");
+    }
+    
+
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -125,6 +154,7 @@ class _AllItemsState extends State<AllItems> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               child: ItemDetailsCard(
+                item: item,
                 itemName  : item["item name"] ?? "",
                 itemId    : item["item id"] ?? "",
                 itemDetails: item["details"] ?? "",

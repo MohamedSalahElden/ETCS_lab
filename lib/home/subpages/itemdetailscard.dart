@@ -1,8 +1,10 @@
+import 'package:etcs_lab_manager/home/subpages/itemDetailsTable.dart';
 import 'package:etcs_lab_manager/signin_up/data/data.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class ItemDetailsCard extends StatelessWidget {
+  final Map<String , dynamic> item; 
   final String itemName; 
   final String itemId; 
   final String itemDetails;
@@ -16,8 +18,23 @@ class ItemDetailsCard extends StatelessWidget {
   
   // Constructor to accept the itemName
    ItemDetailsCard(
-    {Key? key, required this.itemName,required this.itemId, required this.base64Image, required this.itemDetails , required this.colors , required this.numberOfAvailableItems}
+    {Key? key, required this.item , required this.itemName,required this.itemId, required this.base64Image, required this.itemDetails , required this.colors , required this.numberOfAvailableItems}
   ) : super(key: key);
+
+
+  // recolor the icons based on category
+  Color getCategoryColor(String category) {
+    // Create a unique hash for the category
+    int hash = category.hashCode;
+
+    // Generate a color by using the hash value and mapping it to RGB
+    int red = (hash & 0xFF0000) >> 16; // Extract red component
+    int green = (hash & 0x00FF00) >> 8; // Extract green component
+    int blue = hash & 0x0000FF; // Extract blue component
+
+    // Return a color with full opacity
+    return Color.fromARGB(255, red, green, blue);
+  }
 
 
   void showItemDialog(BuildContext context) {
@@ -129,18 +146,110 @@ class ItemDetailsCard extends StatelessWidget {
             height: 150,
           ),
         
-        if (itemDetails != '') 
-        const SizedBox(height: 16),
         
-        if (itemDetails != '') 
-          Text(
-            this.itemDetails,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        
+        Container(
+          width: double.infinity, // Make the container take the full width of the parent
+          
+          child : SingleChildScrollView(
+          scrollDirection: Axis.horizontal, 
+          
+          child:  Row(
+            // margin: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+            children: 
+            [
+            Padding(
+              padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
+            
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal, 
+              
+              child:  Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                SizedBox(width: 8),
+                Chip(
+                  label: Text("Total: ${item['quantity']}" , style: TextStyle(color: Colors.white) ),
+                  backgroundColor:  const Color(0xffbf1e2e),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20), // Set the desired radius
+                  ),
+                  side: BorderSide.none,
+                ),
+                SizedBox(width: 8),
+                Chip(
+                  label: Text(item['type'] , style: TextStyle(color: getCategoryColor(item['type'])),),
+                  backgroundColor:  const Color.fromARGB(0, 0, 0, 0),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20), // Set the desired radius
+                  ),
+                  side: BorderSide(
+                    color: getCategoryColor(item['type']),  // Border color
+                    width: 2.0,          // Border thickness
+                  ),
+                ),
+                SizedBox(width: 8),
+                Chip(
+                  label: Text(item['technology'] , style: TextStyle(color: getCategoryColor(item['technology'])),),
+                  backgroundColor:  const Color.fromARGB(0, 0, 0, 0),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20), // Set the desired radius
+                  ),
+                  side: BorderSide(
+                    color: getCategoryColor(item['technology']),  // Border color
+                    width: 2.0,          // Border thickness
+                  ),
+                ),
+                SizedBox(width: 8),
+                Chip(
+                  label: Text(item['section'] , style: TextStyle(color: getCategoryColor(item['section'])),),
+                  backgroundColor:  const Color.fromARGB(0, 0, 0, 0),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20), // Set the desired radius
+                  ),
+                  side: BorderSide(
+                    color: getCategoryColor(item['section']),  // Border color
+                    width: 2.0,          // Border thickness
+                  ),
+                ),
+                SizedBox(width: 8),
+                Chip(
+                  label: Text(item['related to'] , style: TextStyle(color: getCategoryColor(item['related to'])),),
+                  backgroundColor:  const Color.fromARGB(0, 0, 0, 0),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20), // Set the desired radius
+                  ),
+                  side: BorderSide(
+                    color: getCategoryColor(item['related to']),  // Border color
+                    width: 2.0,          // Border thickness
+                  ),
+                ),
+                ],
+              ),
+            
+              ),
+
+            
+            ),
+            ]
           ),
-        if (itemDetails != '')
-        const SizedBox(height: 16),
         
-        // Buttons
+          ),
+        ),
+
+        if(item["details"] != '')
+        Container(
+          width: double.infinity, // Make the container take the full width of the parent
+          child : Padding(
+              padding: EdgeInsets.fromLTRB(16, 0, 0, 10),
+
+              child : SingleChildScrollView(
+                scrollDirection: Axis.horizontal, 
+                child: Text(item["details"]),
+                ),
+          ),
+        ),
+
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [

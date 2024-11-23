@@ -11,8 +11,10 @@ class MyItemsV2 extends StatefulWidget {
   _MyItemsV2State createState() => _MyItemsV2State();
 }
 
-class _MyItemsV2State extends State<MyItemsV2> {
+late Function(bool) myItemsGlobalUpdateFunction;
 
+class _MyItemsV2State extends State<MyItemsV2> {
+  bool _isSearch = false;
   late int itemcount;
   
   Map<String , Color>  getItemAvailabilityColor(numberOfItems , category){
@@ -49,15 +51,43 @@ class _MyItemsV2State extends State<MyItemsV2> {
     return Color.fromARGB(255, red, green, blue);
   }
 
+void setIsSearch(bool value) {
+    setState(() {
+      _isSearch = value;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    myItemsGlobalUpdateFunction = setIsSearch; // Store the function reference
+  }
+
   @override
   Widget build(BuildContext context) {
     final componentProvider = Provider.of<ComponentProvider>(context, listen: true);
-    itemcount = componentProvider.userComponents.length;
+    
     int? _expandedIndex; 
+
+    Map<String , dynamic> userComponents = {};
+    if (_isSearch == true){
+       userComponents = componentProvider.userComponentsToView;
+       print("[search] get data from userComponentsToView");
+    }
+    else if (_isSearch == false){
+      userComponents = componentProvider.userComponents;
+      print("[search] getting data from userComponents");
+    }
+
+    itemcount = userComponents.length;
+
+
+
+
     
     return Scaffold(
       backgroundColor: Colors.white,
-      body: componentProvider.userComponents.isEmpty
+      body: userComponents.isEmpty
           
           // If there are no items, show the image
           ? Center(
@@ -85,19 +115,19 @@ class _MyItemsV2State extends State<MyItemsV2> {
                 padding: const EdgeInsets.all(8.0),
                 itemCount: itemcount,
                 itemBuilder: (context, index) {
-                  print("[salah] [item] ${componentProvider.userComponents}");
-                  final item = componentProvider.userComponents.keys.toList()[index];
+                  print("[salah] [item] ${userComponents}");
+                  final item = userComponents.keys.toList()[index];
                   print("[salah] [item] $item");
                   final isExpanded = _expandedIndex == index;
                   Map<String , dynamic> parent_item = Provider.of<ComponentProvider>(context, listen: false).getItemFromInstance(item);
                   
                   return Dismissible(
-                    // Key(componentProvider.userComponents[item]["item_name"])
+                    // Key(userComponents[item]["item_name"])
                     key: UniqueKey(),
                     direction: DismissDirection.endToStart,
                     onDismissed: (direction) async {
                       dynamic itemCode = item;
-                      componentProvider.userComponents.remove(item);
+                      userComponents.remove(item);
                       // setState(() {});
                       await Provider.of<ComponentProvider>(context, listen: false).returnComponent(itemCode);
                 
@@ -123,7 +153,7 @@ class _MyItemsV2State extends State<MyItemsV2> {
                               child: Text(parent_item["section"].substring(0,2) , style: const TextStyle(color: Colors.white , fontWeight: FontWeight.bold),),
                             ),
                             // leading: Icon(MdiIcons.sword),
-                            title: Text(componentProvider.userComponents[item].containsKey("item_name") && componentProvider.userComponents[item]["item_name"] != null ? componentProvider.userComponents[item]["item_name"]!: "Default Title", style: TextStyle(fontWeight: FontWeight.bold , color: Colors.black)),
+                            title: Text(userComponents[item].containsKey("item_name") && userComponents[item]["item_name"] != null ? userComponents[item]["item_name"]!: "Default Title", style: TextStyle(fontWeight: FontWeight.bold , color: Colors.black)),
                             
                             subtitle: Text(item , style: TextStyle(color: Colors.black),),
                             trailing: Icon(
@@ -142,9 +172,10 @@ class _MyItemsV2State extends State<MyItemsV2> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 16.0, vertical: 8.0),
                               child: ItemDetailsCard(
-                                itemName : componentProvider.userComponents[item].containsKey("item name") && componentProvider.userComponents[item]["item name"] != null ? componentProvider.userComponents[item]["item name"]!: "",
-                                itemId: componentProvider.userComponents[item].containsKey("item Id") && componentProvider.userComponents[item]["item Id"] != null ? componentProvider.userComponents[item]["item Id"]!: "",
-                                itemDetails: componentProvider.userComponents[item].containsKey("details") && componentProvider.userComponents[item]["details"] != null ? componentProvider.userComponents[item]["details"]!: "",
+                                item: userComponents[item],
+                                itemName : userComponents[item].containsKey("item name") && userComponents[item]["item name"] != null ? userComponents[item]["item name"]!: "",
+                                itemId: userComponents[item].containsKey("item Id") && userComponents[item]["item Id"] != null ? userComponents[item]["item Id"]!: "",
+                                itemDetails: userComponents[item].containsKey("details") && userComponents[item]["details"] != null ? userComponents[item]["details"]!: "",
                                 base64Image: "",
                                 colors: {
                                           "textColor" : const Color.fromARGB(255, 0, 0, 0),

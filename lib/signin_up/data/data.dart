@@ -2,11 +2,59 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:fuzzy/fuzzy.dart';
 
 class ComponentProvider extends ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   List<Map<String, dynamic>>  allComponents = [];
+  List<Map<String, dynamic>>  componentsToView = [];
+  Map<String, dynamic>  userComponentsToView = {};
   Map<String, dynamic> userComponents = {};
+
+
+void searchOnUserComponents( searchString){
+    userComponentsToView = {};
+    Map<String , dynamic> copyOfUserComponents = userComponents;
+    List<String> keys = copyOfUserComponents.keys.toList();
+    List<String> items = copyOfUserComponents.values
+                            .map((item) => item['item_name'] as String)
+                            .where((itemName) => itemName != null) // Optional: Ensure no null values
+                            .toList();
+    List<Map<String, dynamic>> interrist_components = [];
+    
+    final fuzzy = Fuzzy(items);
+    final results = fuzzy.search(searchString);
+    for (var r in results) {
+      int index  = r.matches[0].arrayIndex;
+      Map<String, dynamic> item  = copyOfUserComponents[keys[index]];
+      userComponentsToView[keys[index]] = {
+                'item_name': item['item_name'],
+                'unique_code': keys[index],
+                'borrowed_by': item['borrowed_by'],
+                'status': item['status'],
+                'date_borrowed': item['date_borrowed'],
+              };
+    }
+    
+    notifyListeners();
+  }
+
+
+
+  void searchOnAllComponents(searchString){
+    List<Map<String , dynamic>> ListOfitems = allComponents;
+    List<String> items = ListOfitems.map((item) => item['item name'] as String).toList();
+    List<Map<String, dynamic>> interrist_components = [];
+    
+    final fuzzy = Fuzzy(items);
+    final results = fuzzy.search(searchString);
+    for (var r in results) {
+      int index  = r.matches[0].arrayIndex;
+      interrist_components.add(allComponents[index]);
+    }
+    componentsToView = interrist_components;
+    notifyListeners();
+  }
   
 
   // Firebase setup should be added here (e.g., FirebaseFirestore instance).
@@ -50,6 +98,7 @@ class ComponentProvider extends ChangeNotifier {
     } catch (e) {
       print('Error fetching data: $e');
     }
+    componentsToView = allComponents;
   
     notifyListeners();
   }
@@ -86,7 +135,7 @@ class ComponentProvider extends ChangeNotifier {
                 'status': instanceData['status'],
                 'date_borrowed': instanceData['date_borrowed'],
               };
-              
+
               print("[salah] [user components] $userComponents");
             }
           });

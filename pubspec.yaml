@@ -41,6 +41,7 @@ dependencies:
   cloud_firestore: ^5.5.0
   provider: ^6.1.2
   fluttertoast: ^8.2.8
+  fuzzy: ^0.5.1
   # google_sign_in: ^6.2.2
 
 dev_dependencies:
