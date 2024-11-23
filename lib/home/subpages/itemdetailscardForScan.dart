@@ -186,15 +186,7 @@ void showItemDialog(BuildContext context) {
                   // Borrow Button Logic
                   await Provider.of<ComponentProvider>(context, listen: false).borrowComponent([scannedCode]);
                   
-                  // view message
-                  Fluttertoast.showToast(
-                    msg: "Item borrowed successfully!",
-                    toastLength: Toast.LENGTH_SHORT, // Toast duration: short or long
-                    gravity: ToastGravity.BOTTOM,   // Position: bottom, center, or top
-                    backgroundColor: Colors.green,  // Background color
-                    textColor: Colors.white,        // Text color
-                    fontSize: 16.0,                 // Font size
-                  );
+                  
                 },
                 child: const Text('Borrow'),
               ),
