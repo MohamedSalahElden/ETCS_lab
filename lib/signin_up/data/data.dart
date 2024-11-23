@@ -1,14 +1,35 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class ComponentProvider extends ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   List<Map<String, dynamic>>  allComponents = [];
-  List<Map<String, dynamic>> userComponents = [];
+  Map<String, dynamic> userComponents = {};
   
 
   // Firebase setup should be added here (e.g., FirebaseFirestore instance).
+
+  Future<void> refreshAll() async{
+    initializeComponents();
+    fetchBorrowedItems();
+    notifyListeners();
+  }
+
+
+
+  void printmessage(String message){
+    Fluttertoast.showToast(
+        msg: message,
+        toastLength: Toast.LENGTH_SHORT, // Toast duration: short or long
+        gravity: ToastGravity.BOTTOM,   // Position: bottom, center, or top
+        backgroundColor: const Color.fromARGB(255, 48, 48, 48),  // Background color
+        textColor: Colors.white,        // Text color
+        fontSize: 10.0,                 // Font size
+      );
+  }
+
 
   Future<void> initializeComponents() async {
     // Fetch all components from Firebase
@@ -33,190 +54,170 @@ class ComponentProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-
   Future<void> fetchBorrowedItems() async {
-    userComponents = [];
-    final user = FirebaseAuth.instance.currentUser;
-    FirebaseFirestore firestore = FirebaseFirestore.instance;
+  
+  final user = FirebaseAuth.instance.currentUser;
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-    // Query the items collection
-    QuerySnapshot itemsSnapshot = await firestore.collection('items').get();
-
-
-    // Fetch components owned by the user from Firebase
-     try {
-      if (user != null) {
-        final userUID = user.uid;
-
-        // Reference to the user's document
-        for (var doc in itemsSnapshot.docs) {
-          Map<String, dynamic> itemData = doc.data() as Map<String, dynamic>;
-          
-          // Iterate through the 'instances' field to check if any instance is borrowed by the user
-          List instances = itemData['instances'];
-          for (var instance in instances) {
-            if (instance['borrowed_by'] == userUID) {
-              userComponents.add({
-                'item_name': itemData['item name'],
-                'unique_code': instance['unique_code'],
-                'borrowed_by': instance['borrowed_by'],
-                'status': instance['status'],
-                'date_borrowed': instance['date_borrowed'],
-              });
-            }
-          }
-        }
-      }
-    } catch (e) {
-      print('Error fetching data: $e');
-    }
-    notifyListeners();
-  }
-
-  Future<void> borrowComponent(String componentCode) async {
-    FirebaseFirestore firestore = FirebaseFirestore.instance;
-    final user = FirebaseAuth.instance.currentUser;
-    String itemId = componentCode.substring(0, 12);
-
-  // Fetch components owned by the user from Firebase
-    try {
+  try {
     if (user != null) {
       final userUID = user.uid;
+      userComponents = {};
 
-      try {
-      // Get the document for the specific item
-      DocumentSnapshot itemDoc = await firestore.collection('items').doc(itemId).get();
+      // Query the items collection
+      QuerySnapshot itemsSnapshot = await firestore.collection('items').get();
+
+      // Iterate through each document in the items collection
+      for (var doc in itemsSnapshot.docs) {
+        Map<String, dynamic> itemData = doc.data() as Map<String, dynamic>;
+        print("[salah] [doc] $doc");
+        // Check if 'instances' exists and is a Map
+        if (itemData['instances'] is Map<String, dynamic>) {
+          Map<String, dynamic> instances = itemData['instances'];
+
+          // Iterate through the entries of the 'instances' map
+          instances.forEach((uniqueCode, instanceData) {
+            if (instanceData['borrowed_by'] == userUID) {
+
+              userComponents[uniqueCode] = {
+                'item_name': itemData['item name'],
+                'unique_code': uniqueCode,
+                'borrowed_by': instanceData['borrowed_by'],
+                'status': instanceData['status'],
+                'date_borrowed': instanceData['date_borrowed'],
+              };
+              
+              print("[salah] [user components] $userComponents");
+            }
+          });
+        }
+      }
+    }
+  } catch (e) {
+    print('Error fetching data: $e');
+  }
+  
+  notifyListeners();
+}
+
+  Future<bool> isBorrowed(String componentCode)async {
+      FirebaseFirestore firestore = FirebaseFirestore.instance;
+      String itemId = componentCode.substring(0,12);
+      try{
+        DocumentSnapshot itemDoc = await firestore.collection('items').doc(itemId).get();
 
         if (itemDoc.exists) {
           Map<String, dynamic> itemData = itemDoc.data() as Map<String, dynamic>;
-
-          // Find the instance with the matching unique_code
-          List instances = itemData['instances'];
-          int instanceIndex = instances.indexWhere((instance) => instance['unique_code'] == componentCode);
-
-          if (instanceIndex != -1) {
-            // Update the borrowed_by field for the matching instance
-            instances[instanceIndex]['borrowed_by'] = userUID;            
-            // Update the document in Firestore
-            await firestore.collection('items').doc(itemId).update({
-              'instances': instances,
-            });
-
-
-            int number = itemData['inLabComponents'] - 1;
-            await firestore.collection('items').doc(itemId).update({
-              'inLabComponents': number,
-            });
-
-
-            // userComponents.add({
-            //     'item_name': itemData['item name'],
-            //     'unique_code': instances[instanceIndex]['unique_code'],
-            //     'borrowed_by': instances[instanceIndex]['borrowed_by'],
-            //     'status': instances[instanceIndex]['status'],
-            //     'date_borrowed': instances[instanceIndex]['date_borrowed'],
-            // });
-            fetchBorrowedItems();
-
-            print("[salah] component $componentCode has beed borrowed by $userUID" );
-          } else {
-            print('[salah] No instance found with unique code $componentCode');
+          if (itemData["instances"][componentCode]["borrowed_by"] == ""){
+            
+            return false;
           }
-        } 
-        else {
-          print('[salah] Item not found');
+          else{
+            print("[salah] [isBorrowed] $componentCode is borrowed by ${itemData["instances"][componentCode]["borrowed_by"] }");
+            return true;
+            
+          }
         }
-      } catch (e) {
-        print('[salah] Error updating borrowed_by: $e');
       }
-    }
-    } catch (e) {
-      print('[salah] Error fetching data: $e');
-    }
-  
-
-  // fetchBorrowedItems();
-  notifyListeners();
-
+      catch(e){
+        print("error while checking for $componentCode");
+        return false;
+      }
+      return false;
   }
+
+  Future<void> borrowComponent(List<String> componentCodeList) async {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+    final user = FirebaseAuth.instance.currentUser;
+    int numberOfSuccessfullyBorrowedItems = 0;
+    
+    for (var componentCode in componentCodeList) {
+      String itemId = componentCode.substring(0, 12);
+      try{
+        if (user != null) {
+          final userUID = user.uid;
+            if (isBorrowed(componentCode) == true){}
+            else{
+              await firestore.collection('items').doc(itemId).update({
+                'instances.$componentCode.borrowed_by': userUID,
+                'inLabComponents': FieldValue.increment(-1), // Decrease the count by 1
+              });
+              printmessage("item $componentCode borrowed successfully");
+              numberOfSuccessfullyBorrowedItems += 1;
+            } 
+          }
+          else{ // no user logged in
+            printmessage("no user logged in!");
+          }
+        }catch(e) {
+          printmessage("error occured");
+        }  
+    }
+    if (numberOfSuccessfullyBorrowedItems == componentCodeList.length){
+    }
+    else{
+      printmessage("not all components was successfully borrowed");
+    }
+    fetchBorrowedItems();
+    initializeComponents();
+    
+}
 
   Future<void> returnComponent(String componentCode) async {
-    FirebaseFirestore firestore = FirebaseFirestore.instance;
-    String itemId = componentCode.substring(0, 12);
-    try {
-      // Get the document for the specific item
-      DocumentSnapshot itemDoc = await firestore.collection('items').doc(itemId).get();
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
+  String itemId = componentCode.substring(0, 12);
 
-      if (itemDoc.exists) {
-        Map<String, dynamic> itemData = itemDoc.data() as Map<String, dynamic>;
+  try {
+    // Update the borrowed_by field for the specific instance and increment inLabComponents
+    await firestore.collection('items').doc(itemId).update({
+      'instances.$componentCode.borrowed_by': "", // Clear the borrowed_by field
+      'inLabComponents': FieldValue.increment(1),  // Increment the inLabComponents count by 1
+    });
 
-        // Find the instance with the matching unique_code
-        List instances = itemData['instances'];
-        int instanceIndex = instances.indexWhere((instance) => instance['unique_code'] == componentCode);
+    print('Borrowed_by field cleared successfully.');
 
-        if (instanceIndex != -1) {
-          // Update the borrowed_by field for the matching instance
-          instances[instanceIndex]['borrowed_by'] = "";
-          // Update the document in Firestore
-          await firestore.collection('items').doc(itemId).update({
-            'instances': instances,
-          });
-
-          int number = itemData['inLabComponents'] + 1 ;
-          await firestore.collection('items').doc(itemId).update({
-            'inLabComponents': number,
-          });
-
-
-
-          print('Borrowed_by field updated successfully.');
-        } else {
-          print('No instance found with unique code $componentCode');
-        }
-      } else {
-        print('Item not found');
-      }
-    } catch (e) {
-      print('Error updating borrowed_by: $e');
-    }
-    print("return component $componentCode");
-    initializeComponents();
+    // Optionally call fetchBorrowedItems() to refresh the borrowed items list
     // fetchBorrowedItems();
-    notifyListeners();
 
+    // Notify listeners after returning the component
+    notifyListeners();
+  } catch (e) {
+    print('Error updating borrowed_by: $e');
   }
 
+  print("Component $componentCode returned successfully.");
+  initializeComponents(); // Reinitialize components as necessary
+}
   
-  List<String> getInstanceCodesForItemId(String itemId) {
+  List<String> getAllComponentCodesForItemId(String itemId) {
   initializeComponents();
+  
   // Find the item with the specified item ID, allowing for null if not found
   final item = allComponents.firstWhere(
     (element) => element["item id"] == itemId,
-    orElse: () => <String, dynamic>{}, // Return an empty map instead of null
+    orElse: () => <String, dynamic>{}, // Return an empty map if not found
   );
 
   // If item is empty, return an empty list
   if (item.isEmpty) {
     return [];
   }
-  dynamic x = (item["instances"] as List<dynamic>)
-    .where((instance) => instance["borrowed_by"] == '')
-    .map((instance) => instance["unique_code"] as String)
-    .toList();
 
-  // dynamic x = (item["instances"] as List<dynamic>)
-  //     .map((instance) => instance["unique_code"] as String)
-  //     .toList();
-  // Extract and return the unique codes of all instances
+  // Extract and return the unique codes (keys of the instances map)
+  List<String> componentCodes = (item["instances"] as Map<String, dynamic>)
+      .entries
+      .where((entry) => entry.value['borrowed_by'] == '') // Filter where 'borrowed_by' is ''
+      .map((entry) => entry.key) // Get the key (unique code)
+      .toList();
+
+ 
+  print("[salah] [getAllComponentCodesForItemId] $componentCodes");
+  initializeComponents();
   notifyListeners();
-  print(x);
-  return x;
-  
-  }
+  return componentCodes;
+}
 
-
-
-Map<String, dynamic> getItemFromInstance(String instanceCode) {
+  Map<String, dynamic> getItemFromInstance(String instanceCode) {
   print("[salah] function called");
   String itemId = instanceCode.substring(0, 12);
   Map<String, dynamic>? item = allComponents.firstWhere(
@@ -226,7 +227,6 @@ Map<String, dynamic> getItemFromInstance(String instanceCode) {
   return item;
 
 }  
-
 
 }
 

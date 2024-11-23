@@ -1,5 +1,6 @@
 
 import 'package:etcs_lab_manager/home/subpages/myitems.dart';
+import 'package:etcs_lab_manager/home/subpages/myitemsv2.dart';
 import 'package:etcs_lab_manager/home/subpages/scan.dart';
 import 'package:etcs_lab_manager/home/subpages/search.dart';
 import 'package:etcs_lab_manager/signin_up/auth_service.dart';
@@ -29,42 +30,11 @@ class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
   late List<Widget> _pages; // Declare _pages as a late variable
 
-  
-
-  List<Map<String, dynamic>> electronicComponents = [
-    {
-      "Item": "Resistor",
-      "value": "10kΩ",
-      "type": "Passive",
-      "QTY": 100,
-    },
-    {
-      "Item": "Capacitor",
-      "value": "100µF",
-      "type": "Passive",
-      "QTY": 50,
-    },
-    {
-      "Item": "Microcontroller",
-      "model": "STM32F103",
-      "type": "Active",
-      "QTY": 10,
-    },
-    {
-      "Item": "Diode",
-      "model": "1N4148",
-      "type": "Passive",
-      "QTY": 200,
-    },
-  ];
-
-
-
   @override
   void initState() {
     super.initState();
     _pages = [
-      MyItems(user_items: widget.user_borrowed_items,),
+      MyItemsV2(user_items: widget.user_borrowed_items,),
       AllItems(all_items: widget.all_items), // Access widget.all_items here
       const QRScanner(),
     ];

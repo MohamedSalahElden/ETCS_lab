@@ -91,7 +91,7 @@ class _QRScannerState extends State<QRScanner> {
                           child: Column(
                             mainAxisSize: MainAxisSize.min, // Let the content determine height
                             children: [
-                              ItemDetailsCardForScan(scannedCode: barcodes[0].rawValue?? 'unknown code', base64Image: "" , itemCodes: Provider.of<ComponentProvider>(context, listen: false).getInstanceCodesForItemId(item["item id"]) , itemDetails: item["item id"],),
+                              ItemDetailsCardForScan(scannedCode: barcodes[0].rawValue?? 'unknown code', base64Image: "" , itemCodes: Provider.of<ComponentProvider>(context, listen: false).getAllComponentCodesForItemId(item["item id"]) , itemDetails: item["item id"],),
                             ],
                           ),
                         ),

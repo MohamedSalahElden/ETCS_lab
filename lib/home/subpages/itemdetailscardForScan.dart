@@ -2,8 +2,10 @@ import 'package:etcs_lab_manager/signin_up/data/data.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 
+// ignore: must_be_immutable
 class ItemDetailsCardForScan extends StatelessWidget {
   final String scannedCode; // Field to hold the passed string value
   final String itemDetails;
@@ -73,7 +75,7 @@ void showItemDialog(BuildContext context) {
                             .toList();
                         selectedItemsToBorrow = selected;
                         for (var itemCode in selected) {
-                          await Provider.of<ComponentProvider>(context, listen: false).borrowComponent(itemCode);
+                          await Provider.of<ComponentProvider>(context, listen: false).borrowComponent([itemCode]);
                         }
                         print('[salah] Selected items: $selectedItemsToBorrow');
                         Navigator.of(context).pop();
@@ -180,15 +182,18 @@ void showItemDialog(BuildContext context) {
                 ),
                 onPressed: () async {
                   
-                  
-                  // Borrow Button Logic
-                  await Provider.of<ComponentProvider>(context, listen: false).borrowComponent(scannedCode);
                   Navigator.of(context).pop();
+                  // Borrow Button Logic
+                  await Provider.of<ComponentProvider>(context, listen: false).borrowComponent([scannedCode]);
+                  
                   // view message
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Item borrowed successfully!'),
-                    ),
+                  Fluttertoast.showToast(
+                    msg: "Item borrowed successfully!",
+                    toastLength: Toast.LENGTH_SHORT, // Toast duration: short or long
+                    gravity: ToastGravity.BOTTOM,   // Position: bottom, center, or top
+                    backgroundColor: Colors.green,  // Background color
+                    textColor: Colors.white,        // Text color
+                    fontSize: 16.0,                 // Font size
                   );
                 },
                 child: const Text('Borrow'),

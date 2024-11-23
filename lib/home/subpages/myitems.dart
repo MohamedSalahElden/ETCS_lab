@@ -49,7 +49,7 @@ class _MyItemsState extends State<MyItems> {
                     direction: DismissDirection.endToStart,
                     onDismissed: (direction) async {
                       setState(() {
-                        componentProvider.userComponents.removeAt(index);
+                        componentProvider.userComponents.remove(index);
                       });
 
                       await Provider.of<ComponentProvider>(context, listen: false).returnComponent(item['unique_code']);

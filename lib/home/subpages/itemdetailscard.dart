@@ -1,91 +1,99 @@
 import 'package:etcs_lab_manager/signin_up/data/data.dart';
 import 'package:flutter/material.dart';
-
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 class ItemDetailsCard extends StatelessWidget {
-  final String itemName; // Field to hold the passed string value
+  final String itemName; 
+  final String itemId; 
   final String itemDetails;
   final String base64Image; 
-  final List<String> itemCodes;
   final Map<String , Color> colors;
   final int numberOfAvailableItems;
+  List<String> itemCodes = [];
+
   List<String> selectedItemsToBorrow = [];
+  
+  
   // Constructor to accept the itemName
    ItemDetailsCard(
-    {Key? key, required this.itemName, required this.base64Image, required this.itemCodes, required this.itemDetails , required this.colors , required this.numberOfAvailableItems}
+    {Key? key, required this.itemName,required this.itemId, required this.base64Image, required this.itemDetails , required this.colors , required this.numberOfAvailableItems}
   ) : super(key: key);
 
 
-void showItemDialog(BuildContext context) {
-  // A map to track selected items
-  Map<String, bool> selectedItems = {
-    for (var item in itemCodes) item: false,
-  };
-
-  showDialog(
+  void showItemDialog(BuildContext context) {
+    
+    itemCodes = Provider.of<ComponentProvider>(context, listen: false).getAllComponentCodesForItemId(itemId);
+    
+    
+    Map<String, bool> selectedItems = {
+      for (var item in itemCodes) item: false,
+    };
+    
+       
+    showDialog(
     context: context,
+
     builder: (BuildContext context) {
       return StatefulBuilder(
         builder: (BuildContext context, StateSetter setState) {
           return Dialog(
             child: Container(
-              width: MediaQuery.of(context).size.width * 0.8, // Set the dialog width
-              padding: const EdgeInsets.all(16.0), // Add padding for better styling
+              width: MediaQuery.of(context).size.width * 0.8,
+              padding: const EdgeInsets.all(16.0),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                  'which $itemName',
-                  style: Theme.of(context).textTheme.titleLarge,
+                  'Which $itemName ?',
+                  style: Theme.of(context).textTheme.titleSmall,
                 ),
-                  const SizedBox(height: 16.0),
-                  SingleChildScrollView(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: selectedItems.entries.map((entry) {
-                        return CheckboxListTile(
-                          title: Text(entry.key),
-                          value: entry.value,
-                          onChanged: (bool? value) {
-                            setState(() {
-                              selectedItems[entry.key] = value ?? false;
-                            });
-                          },
-                          activeColor: const Color.fromARGB(255, 42, 153, 27), // Checked color
-                          checkColor: Colors.white, // Checkmark color
+                const SizedBox(height: 16.0),
+                SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: selectedItems.entries.map((entry) {
+                      return CheckboxListTile(
+                        title: Text(entry.key),
+                        value: entry.value,
+                        onChanged: (bool? value) {
+                          setState(() {
+                            selectedItems[entry.key] = value ?? false;
+                          });
+                        },
+                        activeColor: const Color.fromARGB(255, 42, 153, 27), 
+                          checkColor: Colors.white,
                         );
                       }).toList(),
-                    ),
                   ),
-                  const SizedBox(height: 16.0),
+                ),
+                const SizedBox(height: 16.0),
                   SizedBox(
-                    width: double.infinity, // Full-width button
+                    width: double.infinity, 
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromARGB(255, 42, 153, 27), // Green background
-                        foregroundColor: Colors.white, // White text
+                        backgroundColor: const Color.fromARGB(255, 42, 153, 27),
+                        foregroundColor: Colors.white,
                       ),
                       onPressed: () async {
-                        // Process selected items
+                        Navigator.of(context).pop();
                         List<String> selected = selectedItems.entries
                             .where((entry) => entry.value)
                             .map((entry) => entry.key)
                             .toList();
-                        selectedItemsToBorrow = selected;
-                        for (var itemCode in selected) {
-                          await Provider.of<ComponentProvider>(context, listen: false).borrowComponent(itemCode);
+                        for (var s in selected) {
+                          itemCodes.remove(s);  
                         }
-                        print('[salah] Selected items: $selectedItemsToBorrow');
-                        Navigator.of(context).pop();
+                        await Provider.of<ComponentProvider>(context, listen: false).borrowComponent(selected);
+
+                        
                       },
                       child: const Text('Borrow'),
                     ),
                   ),
-                  const SizedBox(height: 8.0), // Spacing between buttons
+
+                  const SizedBox(height: 8.0),
                   SizedBox(
-                    width: double.infinity, // Full-width button
+                    width: double.infinity,
                     child: OutlinedButton(
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.black54, // Text color
@@ -93,7 +101,7 @@ void showItemDialog(BuildContext context) {
                       onPressed: () {
                         Navigator.of(context).pop();
                       },
-                      child: const Text('CANCEL'),
+                      child: const Text('Cancel'),
                     ),
                   ),
                 ],
@@ -106,18 +114,12 @@ void showItemDialog(BuildContext context) {
   );
 }
 
-
- 
   @override
   Widget build(BuildContext context) {
     
-    return
-    
-    Container(
+    return Container(
       color: colors["itemColor"],
-    
-     child:  Column(
-      
+      child:  Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         if (base64Image != '') 
@@ -179,19 +181,8 @@ void showItemDialog(BuildContext context) {
                   backgroundColor: colors["logoColor"], // White text
                 ),
                 onPressed: () async {
-                  if (numberOfAvailableItems>0){
+                  if (numberOfAvailableItems > 0){
                     showItemDialog(context);
-                    
-                    // Borrow Button Logic
-                    // print("[salah] borrowing component with code 18b78bb21b5f0101");
-                    // await Provider.of<ComponentProvider>(context, listen: false).borrowComponent("18b78bb21b5f0101");
-                    
-                    // view message
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Item borrowed successfully!'),
-                      ),
-                    );
                   }  
                 },
                 child:  Text('Borrow' , style: TextStyle(color: colors["itemColor"]),),
