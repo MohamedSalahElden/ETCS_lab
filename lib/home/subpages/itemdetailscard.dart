@@ -1,4 +1,3 @@
-import 'package:etcs_lab_manager/home/subpages/itemDetailsTable.dart';
 import 'package:etcs_lab_manager/signin_up/data/data.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -133,7 +132,7 @@ class ItemDetailsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    
+    print("[expanded] $item ");
     return Container(
       color: colors["itemColor"],
       child:  Column(

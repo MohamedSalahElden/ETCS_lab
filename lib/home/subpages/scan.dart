@@ -1,4 +1,7 @@
+import 'package:etcs_lab_manager/home/subpages/itemActions.dart';
+import 'package:etcs_lab_manager/home/subpages/itemCard.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:provider/provider.dart';
 import 'package:etcs_lab_manager/home/subpages/itemdetailscardForScan.dart';
@@ -21,11 +24,21 @@ class _QRScannerState extends State<QRScanner> {
   bool _isBottomSheetVisible = false; // Flag to track bottom sheet visibility
   bool isFlashOn = false; // Flash toggle state
   List<Barcode> barcodes = [];
+  Map<String , dynamic> parentItem = {};
 
   void _closeBottomSheet() {
     setState(() {
       _isBottomSheetVisible = false;
     });
+  }
+
+  
+  Color getCategoryColor(String category) {
+    int hash = category.hashCode;
+    int red = (hash & 0xFF0000) >> 16;
+    int green = (hash & 0x00FF00) >> 8;
+    int blue = hash & 0x0000FF;
+    return Color.fromARGB(255, red, green, blue);
   }
 
   void _toggleFlash() {
@@ -41,65 +54,91 @@ class _QRScannerState extends State<QRScanner> {
 
     final String scannedCode = barcodes.last.rawValue ?? 'Unknown code';
     final componentProvider = Provider.of<ComponentProvider>(context, listen: false);
-    dynamic item = await componentProvider.getItemFromInstance(scannedCode);
+    parentItem = componentProvider.getItemFromInstance(scannedCode);
+
 
     setState(() {
       _isBottomSheetVisible = true;
     });
 
-    // Display the bottom sheet
-    // showModalBottomSheet(
-    //   context: context,
-    //   backgroundColor: Colors.white,
-    //   shape: const RoundedRectangleBorder(
-    //     borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-    //   ),
-    //   elevation: 10,
-    //   isScrollControlled: true,
-    //   builder: (context) {
-    //     return Padding(
-    //        padding: const EdgeInsets.only(top: 20, bottom: 20), // Add space at the top and bottom,
-    //       child: Column(
-    //         mainAxisSize: MainAxisSize.min,
-    //         children: [
-    //           ItemDetailsCardForScan(
-    //             scannedCode: scannedCode,
-    //             base64Image: "",
-    //             itemCodes: componentProvider.getAllComponentCodesForItemId(item["item id"]),
-    //             itemDetails: item["item id"],
-    //           ),
-    //         ],
-    //       ),
-    //     );
-    //   },
-    // ).then((_) => _closeBottomSheet());
 
-                  showModalBottomSheet(
-                      backgroundColor: Colors.white,
-                      context: context,
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                      ),
-                      elevation: 10, // Drop shadow
-                      isScrollControlled: true, // Allows dynamic height adjustment
-                      builder: (BuildContext context) {
-                        return Padding(
-                        padding: const EdgeInsets.only(top: 20, bottom: 20), // Add space at the top and bottom
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: const BoxDecoration(
-                            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min, // Let the content determine height
-                            children: [
-                              ItemDetailsCardForScan(scannedCode: barcodes[0].rawValue?? 'unknown code', base64Image: "" , itemCodes: Provider.of<ComponentProvider>(context, listen: false).getAllComponentCodesForItemId(item["item id"]) , itemDetails: item["item id"],),
-                            ],
-                          ),
-                        ),
-                      );
-                      },
-                  ).then((_) => _closeBottomSheet());
+  showModalBottomSheet(
+  backgroundColor: Colors.white,
+  context: context,
+  shape: const RoundedRectangleBorder(
+    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+  ),
+  elevation: 10, // Drop shadow
+  isScrollControlled: true, // Allows dynamic height adjustment
+  builder: (BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 20, bottom: 20), // Add space at the top and bottom
+      child: SingleChildScrollView(  // Wrap in SingleChildScrollView to handle overflow
+        child: Container(
+          padding: const EdgeInsets.all(5),
+          decoration: const BoxDecoration(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,  // Ensures the column takes the size of its children
+            children: [
+              ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: getCategoryColor(parentItem['section']),
+                  child: Text(
+                    parentItem["section"].substring(0, 2),
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                title: Text(
+                  parentItem.containsKey("item name") && parentItem["item name"] != null
+                      ? parentItem["item name"]!
+                      : "",
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+                ),
+                subtitle: Row(
+                children: [
+                  Text(
+                    "code: $scannedCode",
+                    style: const TextStyle(color: Colors.black),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.copy, color: Colors.black), // Copy icon
+                    onPressed: () {
+                      // Copy the scannedCode to the clipboard
+                      Clipboard.setData(ClipboardData(text: scannedCode));
+                    },
+                  ),
+                  
+                ],
+              ),
+                trailing: const Icon(
+                  Icons.expand_more,
+                  color: Color.fromARGB(255, 0, 0, 0),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                child: Column(
+                  children: [
+                    ItemCard(item: parentItem),
+                    ItemActions(
+                      item: parentItem,
+                      bottonType: "return",
+                      bottonState: "active",
+                      action: () {},
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  },
+).then((_) => _closeBottomSheet());
+
   }
 
   @override

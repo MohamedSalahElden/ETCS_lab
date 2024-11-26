@@ -20,7 +20,6 @@ void searchOnUserComponents( searchString){
                             .map((item) => item['item_name'] as String)
                             .where((itemName) => itemName != null) // Optional: Ensure no null values
                             .toList();
-    List<Map<String, dynamic>> interrist_components = [];
     
     final fuzzy = Fuzzy(items);
     final results = fuzzy.search(searchString);

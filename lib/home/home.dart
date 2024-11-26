@@ -1,6 +1,6 @@
 
 
-import 'package:etcs_lab_manager/home/subpages/myitemsv2.dart';
+import 'package:etcs_lab_manager/home/subpages/myItems.dart';
 import 'package:etcs_lab_manager/home/subpages/scan.dart';
 import 'package:etcs_lab_manager/home/subpages/search.dart';
 import 'package:etcs_lab_manager/signin_up/auth_service.dart';
@@ -43,7 +43,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     _pages = [
-      MyItemsV2(user_items: widget.user_borrowed_items,),
+      MyItems(user_items: widget.user_borrowed_items,),
       AllItems(all_items: widget.all_items), // Access widget.all_items here
       const QRScanner(),
     ];
@@ -66,10 +66,10 @@ class _MyHomePageState extends State<MyHomePage> {
     void _updateWithSearchedItems(String string){
       if (_selectedIndex == 0){
         if(string == ""){
-          myItemsGlobalUpdateFunction(false);
+          myItemsGlobalSetSearchValue(false);
         }
         else{
-          myItemsGlobalUpdateFunction(true);
+          myItemsGlobalSetSearchValue(true);
           print("[search] $string" );
           Provider.of<ComponentProvider>(context, listen: false).searchOnUserComponents(string);
         }
@@ -140,6 +140,7 @@ class _MyHomePageState extends State<MyHomePage> {
               icon: const Icon(Icons.cancel, color: Colors.white),
               onPressed: () {
                 setState(() {
+                  myItemsGlobalSetSearchValue(false);
                   _isSearching = false; // Disable search mode
                   _searchController.clear(); // Clear search text
                 });

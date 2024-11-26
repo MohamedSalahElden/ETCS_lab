@@ -1,89 +1,165 @@
+import 'package:etcs_lab_manager/home/subpages/itemActions.dart';
+import 'package:etcs_lab_manager/home/subpages/itemCard.dart';
 import 'package:etcs_lab_manager/signin_up/data/data.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class MyItems extends StatefulWidget {
+  
+  // ignore: non_constant_identifier_names
   final List<Map<String, dynamic>> user_items; // Declare a final field for all_items
+  // ignore: non_constant_identifier_names
   const MyItems({super.key, required this.user_items});
   
   @override
+  // ignore: library_private_types_in_public_api
   _MyItemsState createState() => _MyItemsState();
 }
 
+late Function(bool) myItemsGlobalSetSearchValue;
+
 class _MyItemsState extends State<MyItems> {
+  int? _expandedIndex; 
+  bool _isSearch = false;
+  late int itemcount;
+
+  Color getCategoryColor(String category) {
+    int hash = category.hashCode;
+    int red = (hash & 0xFF0000) >> 16;
+    int green = (hash & 0x00FF00) >> 8;
+    int blue = hash & 0x0000FF;
+    return Color.fromARGB(255, red, green, blue);
+  }
+
+void setIsSearch(bool value) {
+    setState(() {
+      _isSearch = value;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    myItemsGlobalSetSearchValue = setIsSearch; // Store the function reference
+  }
+
   @override
   Widget build(BuildContext context) {
-    final componentProvider = Provider.of<ComponentProvider>(context);
+    
+
+    final componentProvider = Provider.of<ComponentProvider>(context, listen: true);
+    
+    
+
+    Map<String , dynamic> userComponents = {};
+    if (_isSearch == true){userComponents = componentProvider.userComponentsToView;}
+    else if (_isSearch == false){userComponents = componentProvider.userComponents;}
+
+    itemcount = userComponents.length;
+
+
+
+
     
     return Scaffold(
       backgroundColor: Colors.white,
-      body: componentProvider.userComponents.isEmpty
+      body: userComponents.isEmpty
+          
           // If there are no items, show the image
           ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Image.asset('assets/no_items_here.png', height: 200), // Update the path to your image
-                  SizedBox(height: 20),
-                  Text(
+                  const SizedBox(height: 20),
+                  const Text(
                     'No items available!',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
             )
+          
           // If there are items, show the list
           : RefreshIndicator(
-              onRefresh: () async {
-                // Initialize Firebase or any required services
-                await Provider.of<ComponentProvider>(context, listen: false).fetchBorrowedItems();
-              },
+              onRefresh: () async {await Provider.of<ComponentProvider>(context, listen: false).fetchBorrowedItems();},
+              
               child: ListView.builder(
                 padding: const EdgeInsets.all(8.0),
-                itemCount: componentProvider.userComponents.length,
+                itemCount: itemcount,
                 itemBuilder: (context, index) {
-                  final item = componentProvider.userComponents[index];
-
+                  final item = userComponents.keys.toList()[index];
+                  final isExpanded = _expandedIndex == index;
+                  Map<String , dynamic> parentItem = Provider.of<ComponentProvider>(context, listen: false).getItemFromInstance(item);
+                  
                   return Dismissible(
-                    key: Key(item["item_name"]),
+                    // Key(userComponents[item]["item_name"])
+                    key: UniqueKey(),
                     direction: DismissDirection.endToStart,
                     onDismissed: (direction) async {
-                      setState(() {
-                        componentProvider.userComponents.remove(index);
-                      });
-
-                      await Provider.of<ComponentProvider>(context, listen: false).returnComponent(item['unique_code']);
-
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('${item["unique_code"]} Returned to Lab')),
-                      );
+                      _expandedIndex = null;
+                      dynamic itemCode = item;
+                      userComponents.remove(item);
+                      await Provider.of<ComponentProvider>(context, listen: false).returnComponent(itemCode);
                     },
+
                     background: Container(
-                      color: Color(0xffbf1e2e),
+                      color: const Color.fromARGB(255, 255, 255, 255),
                       alignment: Alignment.centerRight,
-                      padding: EdgeInsets.symmetric(horizontal: 20),
-                      child: Icon(Icons.delete, color: const Color.fromARGB(255, 255, 255, 255)),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: const Icon(Icons.delete, color: Color(0xffbf1e2e)),
                     ),
                     child: Card(
-                      elevation: 2,
-                      margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                      color: Colors.white,
+                      elevation: 5,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(30.0),
                       ),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: Colors.blue,
-                          child: Text(
-                            item['item_name'][0],
-                            style: TextStyle(color: Colors.white),
+                      child: Column(
+                        children: [
+                          ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: getCategoryColor(parentItem['section']),
+                              child: Text(parentItem["section"].substring(0,2) , style: const TextStyle(color: Colors.white , fontWeight: FontWeight.bold),),
+                            ),
+                            // leading: Icon(MdiIcons.sword),
+                            title: Text(userComponents[item].containsKey("item_name") && userComponents[item]["item_name"] != null ? userComponents[item]["item_name"]!: "Default Title", style: const TextStyle(fontWeight: FontWeight.bold , color: Colors.black)),
+                            
+                            subtitle: Text(item , style: const TextStyle(color: Colors.black),),
+                            trailing: Icon(
+                              isExpanded ? Icons.expand_less : Icons.expand_more,
+                              color: const Color.fromARGB(255, 0, 0, 0),
+                            ),
+                            onTap: () async {
+                              setState(() {
+                                _expandedIndex = isExpanded ? null : index;  
+                                }
+                              );
+                            },
                           ),
-                        ),
-                        title: Text(
-                          item['item_name'],
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: Text(item['unique_code']),
-                        trailing: Icon(Icons.arrow_downward, color: Color.fromARGB(255, 3, 150, 22)),
+                          
+                          if (isExpanded)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                              horizontal: 16.0, vertical: 8.0),
+                              child: Column(
+                                children: [
+                                  ItemCard(item: parentItem,),
+                                  ItemActions(
+                                    item: parentItem,  
+                                    bottonType: "return", 
+                                    bottonState: "active", 
+                                    action: () async {
+                                      _expandedIndex = null;
+                                      dynamic itemCode = item;
+                                      userComponents.remove(item);
+                                      await Provider.of<ComponentProvider>(context, listen: false).returnComponent(itemCode);
+                                    },
+                                  ),
+                                ],
+                              ) 
+                            ),
+                          ],
                       ),
                     ),
                   );
