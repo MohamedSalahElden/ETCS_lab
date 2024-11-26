@@ -1,5 +1,6 @@
 
 
+import 'package:etcs_lab_manager/home/subpages/about.dart';
 import 'package:etcs_lab_manager/home/subpages/myItems.dart';
 import 'package:etcs_lab_manager/home/subpages/scan.dart';
 import 'package:etcs_lab_manager/home/subpages/search.dart';
@@ -191,14 +192,33 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ),
             ListTile(
-              title: const Text('Options'),
+              title: const Text('Account'),
               selected: _selectedIndex == 0,
               onTap: () {},
             ),
+            ListTile(
+              title: const Text('About'),
+              selected: _selectedIndex == 0,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) =>  AboutPage()),
+                );
+              },
+            ),
 
+            Container(
+              padding: const EdgeInsets.fromLTRB(15, 0, 15, 0),
+              child:  Divider(
+              color: const Color.fromARGB(255, 207, 207, 207),
+              thickness: 1,
+              ),
+            
+            ),
+            
 
             ListTile(
-              title: const Text('Logout'),
+              title: const Text('Logout' , style: TextStyle(color: const Color(0xffbf1e2e)),),
               selected: _selectedIndex == 0,
               onTap: () {
                 // Update the state of the app
