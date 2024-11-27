@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:fuzzy/fuzzy.dart';
+import 'package:intl/intl.dart';
 
 class ComponentProvider extends ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -10,7 +11,7 @@ class ComponentProvider extends ChangeNotifier {
   List<Map<String, dynamic>>  componentsToView = [];
   Map<String, dynamic>  userComponentsToView = {};
   Map<String, dynamic> userComponents = {};
-  List<Map<String, dynamic>> itemActions = [];
+  List<dynamic> itemActions = [];
 
 
 
@@ -188,10 +189,14 @@ void searchOnUserComponents( searchString){
           final userUID = user.uid;
             if (isBorrowed(componentCode) == true){}
             else{
+              String currentDateTime = '';
+              DateTime now = DateTime.now();
+              currentDateTime = DateFormat("yyyy-MM-dd HH:mm:ss").format(now);
               await firestore.collection('items').doc(itemId).update({
                 'instances.$componentCode.borrowed_by': userUID,
                 'inLabComponents': FieldValue.increment(-1), // Decrease the count by 1
               });
+              addAction(componentCode , "borrow" , "" , "");
               printmessage("item $componentCode borrowed successfully");
               numberOfSuccessfullyBorrowedItems += 1;
             } 
@@ -216,13 +221,22 @@ void searchOnUserComponents( searchString){
   Future<void> returnComponent(String componentCode) async {
   FirebaseFirestore firestore = FirebaseFirestore.instance;
   String itemId = componentCode.substring(0, 12);
+  final user = FirebaseAuth.instance.currentUser;
 
   try {
+    if (user != null) {
+          final userUID = user.uid;
+    
+     String currentDateTime = '';
+      DateTime now = DateTime.now();
+      currentDateTime = DateFormat("yyyy-MM-dd HH:mm:ss").format(now);
     // Update the borrowed_by field for the specific instance and increment inLabComponents
     await firestore.collection('items').doc(itemId).update({
       'instances.$componentCode.borrowed_by': "", // Clear the borrowed_by field
       'inLabComponents': FieldValue.increment(1),  // Increment the inLabComponents count by 1
     });
+     addAction(componentCode , "return" , "" , "");
+    }
 
     print('Borrowed_by field cleared successfully.');
 
@@ -287,13 +301,58 @@ void searchOnUserComponents( searchString){
       if (documentSnapshot.exists) {
         // itemActions = documentSnapshot.data()["operations"] as Map<String, dynamic>;
         Map<String , dynamic> data = documentSnapshot.data() as Map<String, dynamic>;
-        itemActions = data["operations"] as List<Map<String , dynamic>>;
+        itemActions = data["operations"];
       } else {
         print("Document does not exist");
       }
     
     notifyListeners();
   }
+
+
+  Future<void> addAction(String componentCode , String actionType , String actionTitle , String actionDetails) async {
+    
+      FirebaseFirestore firestore = FirebaseFirestore.instance;
+      final user = FirebaseAuth.instance.currentUser;
+      int numberOfSuccessfullyBorrowedItems = 0;
+      try{
+        if (user != null) {
+          final userUID = user.uid;
+          final  user_name = user.displayName;  
+          String currentDateTime = '';
+          DateTime now = DateTime.now();
+          currentDateTime = DateFormat("yyyy-MM-dd HH:mm:ss").format(now);
+
+          DocumentReference docRef = _firestore.collection('actions').doc(componentCode);
+
+          await docRef.update({
+            "operations": FieldValue.arrayUnion([
+              {
+                  "date": currentDateTime,
+                  "action title": actionTitle,
+                  "action type": actionType,
+                  "action details": actionDetails,
+                  "action owner name": user_name,
+                  "action user ID": userUID
+              
+              }
+            ]),
+          });
+          printmessage("item $componentCode borrowed successfully");
+          numberOfSuccessfullyBorrowedItems += 1;
+          
+          }
+          else{ // no user logged in
+            printmessage("no user logged in!");
+          }
+        }catch(e) {
+          printmessage("error occured");
+        }  
+      
+  getActions(componentCode);    
+      
+  }
+  
 
 }
 
