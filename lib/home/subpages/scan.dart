@@ -123,9 +123,12 @@ class _QRScannerState extends State<QRScanner> {
                     ItemCard(item: parentItem),
                     ItemActions(
                       item: parentItem,
-                      bottonType: "return",
+                      bottonType: "borrow",
                       bottonState: "active",
-                      action: () {},
+                      action: () async {
+                        Navigator.of(context).pop();
+                        await Provider.of<ComponentProvider>(context, listen: false).borrowComponent([scannedCode]);
+                      },
                       instanceCode: scannedCode,
                     ),
                   ],
@@ -172,7 +175,10 @@ class _QRScannerState extends State<QRScanner> {
               child: MobileScanner(
                 controller: controller,
                 fit: BoxFit.contain,
-                onDetect: (capture) => { barcodes = capture.barcodes},
+                onDetect: (capture) { 
+                  barcodes = capture.barcodes;
+                  _handleBarcodeDetection(context);
+                  },
               ),
             ),
             Expanded(
@@ -201,16 +207,17 @@ class _QRScannerState extends State<QRScanner> {
                     ),
                     const SizedBox(width: 16), // Space between buttons
                     // Borrow Button
-                    Expanded(
-                      flex: 5, // Remaining width of the row
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color.fromARGB(255, 42, 153, 27), // White text
-                        ),
-                        onPressed: () {_handleBarcodeDetection(context);},
-                        child:  Text('Scan' , style: TextStyle(color: Colors.white),),
-                      ),
-                    ),
+                    // Expanded(
+                    //   flex: 5, // Remaining width of the row
+                    //   child: ElevatedButton(
+                    //     style: ElevatedButton.styleFrom(
+                    //       backgroundColor: const Color.fromARGB(255, 42, 153, 27), // White text
+                    //     ),
+                    //     // onPressed: () {_handleBarcodeDetection(context);},
+                    //     onPressed: () {},
+                    //     child:  Text('Scan' , style: TextStyle(color: Colors.white),),
+                    //   ),
+                    // ),
                   ],
                 )
 ,
