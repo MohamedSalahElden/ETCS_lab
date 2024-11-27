@@ -1,4 +1,5 @@
-import 'package:etcs_lab_manager/home/subpages/itemdetailscard.dart';
+import 'package:etcs_lab_manager/home/subpages/itemActions.dart';
+import 'package:etcs_lab_manager/home/subpages/itemCard.dart';
 import 'package:etcs_lab_manager/signin_up/data/data.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -12,8 +13,6 @@ class AllItems extends StatefulWidget {
 
   @override
   _AllItemsState createState() => _AllItemsState();
-
-
 }
 
 late Function(bool) globalUpdateFunction;
@@ -153,18 +152,129 @@ void setIsSearch(bool value) {
           if (isExpanded)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: ItemDetailsCard(
-                item: item,
-                itemName  : item["item name"] ?? "",
-                itemId    : item["item id"] ?? "",
-                itemDetails: item["details"] ?? "",
-                base64Image: "",
-                colors: colors,
-                numberOfAvailableItems: inLabQuantity,
-              ),
+              child: Column(
+                children: [
+                  ItemCard(item: item,),
+                  (item["inLabComponents"] > 0) ? 
+                  ItemActions(
+                    item: item,  
+                    bottonType: "borrow", 
+                    bottonState: "active", 
+                    action: () async {
+                      showItemDialog(context , item);
+                    },
+                    instanceCode: "",
+                  ):
+                  ItemActions(
+                    item: item,  
+                    bottonType: "borrow", 
+                    bottonState: "inactive", 
+                    action: () {} ,
+                    instanceCode: "",
+                  ),
+                ],
+              ) 
             ),
         ],
       ),
     );
   }
+
+  
+  void showItemDialog(BuildContext context , Map<String , dynamic> itemDict) {
+    
+    var itemCodes = Provider.of<ComponentProvider>(context, listen: false).getAllComponentCodesForItemId(itemDict["item id"]);
+    
+    
+    Map<String, bool> selectedItems = {
+      for (var item in itemCodes) item: false,
+    };
+    
+       
+    showDialog(
+    context: context,
+
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (BuildContext context, StateSetter setState) {
+          return Dialog(
+            child: Container(
+              width: MediaQuery.of(context).size.width * 0.8,
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                  'Which ${itemDict["item name"]} ?',
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                const SizedBox(height: 16.0),
+                SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: selectedItems.entries.map((entry) {
+                      return CheckboxListTile(
+                        title: Text(entry.key),
+                        value: entry.value,
+                        onChanged: (bool? value) {
+                          setState(() {
+                            selectedItems[entry.key] = value ?? false;
+                          });
+                        },
+                        activeColor: const Color.fromARGB(255, 42, 153, 27), 
+                          checkColor: Colors.white,
+                        );
+                      }).toList(),
+                  ),
+                ),
+                const SizedBox(height: 16.0),
+                  SizedBox(
+                    width: double.infinity, 
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(255, 42, 153, 27),
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: () async {
+                        Navigator.of(context).pop();
+                        List<String> selected = selectedItems.entries
+                            .where((entry) => entry.value)
+                            .map((entry) => entry.key)
+                            .toList();
+                        for (var s in selected) {
+                          itemCodes.remove(s);  
+                        }
+                        await Provider.of<ComponentProvider>(context, listen: false).borrowComponent(selected);
+
+                        
+                      },
+                      child: const Text('Borrow'),
+                    ),
+                  ),
+
+                  const SizedBox(height: 8.0),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.black54, // Text color
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                        child: const Text('Cancel'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+
+
 }

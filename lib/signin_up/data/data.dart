@@ -10,6 +10,8 @@ class ComponentProvider extends ChangeNotifier {
   List<Map<String, dynamic>>  componentsToView = [];
   Map<String, dynamic>  userComponentsToView = {};
   Map<String, dynamic> userComponents = {};
+  List<Map<String, dynamic>> itemActions = [];
+
 
 
 void searchOnUserComponents( searchString){
@@ -275,6 +277,23 @@ void searchOnUserComponents( searchString){
   return item;
 
 }  
+
+  
+  Future<void> getActions(String componentCode) async {
+   
+      DocumentSnapshot documentSnapshot =
+          await _firestore.collection("actions").doc(componentCode).get();
+
+      if (documentSnapshot.exists) {
+        // itemActions = documentSnapshot.data()["operations"] as Map<String, dynamic>;
+        Map<String , dynamic> data = documentSnapshot.data() as Map<String, dynamic>;
+        itemActions = data["operations"] as List<Map<String , dynamic>>;
+      } else {
+        print("Document does not exist");
+      }
+    
+    notifyListeners();
+  }
 
 }
 

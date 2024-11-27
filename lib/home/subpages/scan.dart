@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:provider/provider.dart';
-import 'package:etcs_lab_manager/home/subpages/itemdetailscardForScan.dart';
 import 'package:etcs_lab_manager/signin_up/data/data.dart';
 
 const bgColor = Color(0xfffafafa);

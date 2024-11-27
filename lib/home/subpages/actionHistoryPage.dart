@@ -1,4 +1,6 @@
+import 'package:etcs_lab_manager/signin_up/data/data.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class ChatPage extends StatefulWidget {
   final Map<String, dynamic> item;
@@ -10,18 +12,46 @@ class ChatPage extends StatefulWidget {
   _ChatPageState createState() => _ChatPageState();
 }
 
+
+
 class _ChatPageState extends State<ChatPage> {
   final List<Message> messages = [
-    Message(sender: "Other", text: "Hello! How are you?", timestamp: "10:00 AM"),
-    Message(sender: "You", text: "I'm good, thanks! How about you?", timestamp: "10:01 AM"),
-    Message(sender: "Other", text: "I'm doing well. What are you up to?", timestamp: "10:02 AM"),
-    Message(sender: "You", text: "Just working on some Flutter projects.", timestamp: "10:03 AM"),
-    Message(sender: "Other", text: "Sounds interesting! Keep it up.", timestamp: "10:05 AM"),
+    Message(sender: "mohamed salah", actionType: "borrow" ,text: "", timestamp: "10:00 AM"),
+    Message(sender: "mohamed salah", actionType: "return" ,text: "Hello! How are you?", timestamp: "10:00 AM"),
+    Message(sender: "You", actionType: "borrow", text: "I'm good, thanks! How about you?", timestamp: "10:01 AM"),
+    Message(sender: "You", actionType: "return", text: "I'm doing well. What are you up to?", timestamp: "10:02 AM"),
+    Message(sender: "george safwat", actionType: "borrow", text: "Just working on some Flutter projects.", timestamp: "10:03 AM"),
+    Message(sender: "george safwat", actionType: "return", text: "Sounds interesting! Keep it up.", timestamp: "10:05 AM"),
+    Message(sender: "mina girgis", actionType: "borrow", text: "Just working on some Flutter projects.", timestamp: "10:03 AM"),
+    Message(sender: "mina girgis", actionType: "return", text: "Sounds interesting! Keep it up.", timestamp: "10:05 AM"),
+    
   ];
+  bool isAtEnd = false;
+
+  final ScrollController _scrollController = ScrollController();
 
   final TextEditingController _messageController = TextEditingController();
   String _selectedOption = "Damaged";
   final List<String> _options = ["Damaged", "Reconfigure", "Set Value"];
+
+
+  
+
+  void _scrollToEnd() {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: Duration(seconds: 1),
+        curve: Curves.easeInOut,
+      );
+    }
+
+  Color getCategoryColor(String category) {
+    int hash = category.hashCode;
+    int red = (hash & 0xFF0000) >> 16; 
+    int green = (hash & 0x00FF00) >> 8; 
+    int blue = hash & 0x0000FF;
+    return Color.fromARGB(255, red, green, blue);
+  }
 
   void _sendMessage() {
     final text = _messageController.text.trim();
@@ -29,6 +59,7 @@ class _ChatPageState extends State<ChatPage> {
       setState(() {
         messages.add(Message(
           sender: "You",
+          actionType: "borrow",
           text: "$_selectedOption: $text",
           timestamp: "Now",
         ));
@@ -38,11 +69,19 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final componentProvider = Provider.of<ComponentProvider>(context, listen: true);
+    print("[comp] ${componentProvider.itemActions}");
+    
     return Scaffold(
 
 
-      appBar: AppBar(
+  appBar: AppBar(
   flexibleSpace: Container(
     decoration: BoxDecoration(
       gradient: LinearGradient(
@@ -89,12 +128,19 @@ class _ChatPageState extends State<ChatPage> {
             // Messages List
             Expanded(
               child: ListView.builder(
+                controller: _scrollController,
                 itemCount: messages.length,
                 reverse: false,
                 itemBuilder: (context, index) {
                   final message = messages[index];
                   final isMe = message.sender == "You";
-
+                   String initials = "";
+                  String user_name = message.sender;
+                  if(!isMe){
+                    List<String> nameParts = user_name.split(" ");
+                    initials = nameParts[0][0] + nameParts[1][0];
+                  }
+                  
                   return Column(
                     crossAxisAlignment: isMe
                         ? CrossAxisAlignment.end
@@ -111,58 +157,71 @@ class _ChatPageState extends State<ChatPage> {
                             CircleAvatar(
                               radius: 16.0,
                               child: Text(
-                                "M",
-                                style: TextStyle(color: Colors.white),
+                                initials,
+                                style: TextStyle(color: Colors.white , fontSize: 12),
+                                
                               ),
-                              backgroundColor: Colors.blue,
+                              backgroundColor: getCategoryColor(user_name),
                             ),
-                          SizedBox(width: 8.0),
-                          Text(
-                            "For now fill it with Title",
-                            style: TextStyle(
-                              fontSize: 14.0,
-                              fontWeight: FontWeight.bold,
+                          const SizedBox(width: 8),
+                          Chip(
+                            label: Text(message.actionType , style: TextStyle(color: Colors.white , fontSize: 10) ),
+                            backgroundColor:  message.actionType == "borrow" ? Color.fromARGB(255, 42, 153, 27): Color(0xffbf1e2e),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20), // Set the desired radius
                             ),
+                            side: BorderSide.none,
                           ),
                         ],
                       ),
-                      SizedBox(height: 4.0),
-                      // Message Bubble
-                      Align(
-                        alignment:
-                            isMe ? Alignment.centerRight : Alignment.centerLeft,
-                        child: Container(
-                          margin: const EdgeInsets.symmetric(vertical: 4.0),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16.0,
-                            vertical: 10.0,
-                          ),
-                          constraints: BoxConstraints(maxWidth: 250.0),
-                          decoration: BoxDecoration(
-                            color: isMe ? Colors.blue[100] : Colors.grey[300],
-                            borderRadius: BorderRadius.circular(12.0),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: isMe
-                                ? CrossAxisAlignment.end
-                                : CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                message.text,
-                                style: TextStyle(fontSize: 16.0),
-                              ),
-                              SizedBox(height: 5.0),
-                              Text(
-                                message.timestamp,
-                                style: TextStyle(
-                                  fontSize: 12.0,
-                                  color: Colors.grey[700],
-                                ),
-                              ),
-                            ],
+                      Padding(
+                        padding: EdgeInsets.only(left: 45),
+                        child: Text(
+                        message.timestamp,
+                          style: TextStyle(
+                            fontSize: 12.0,
+                            color: Colors.grey[700],
                           ),
                         ),
                       ),
+                      SizedBox(height: 4.0),
+                      // Message Bubble
+                      if(message.text != "")
+Padding(
+  padding: EdgeInsets.only(left: 40),
+  child: Align(
+    alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+    child: Container(
+      margin: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 16.0,
+        vertical: 10.0,
+      ),
+      decoration: BoxDecoration(
+        color: isMe ? const Color.fromARGB(255, 255, 255, 255) : const Color.fromARGB(255, 255, 255, 255),
+        borderRadius: BorderRadius.circular(12.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2), // Shadow color
+            blurRadius: 6.0, // Spread of the shadow
+            offset: Offset(0, 3), // Offset of the shadow
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment:
+            isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        children: [
+          Text(
+            message.text,
+            style: TextStyle(fontSize: 16.0),
+          ),
+        ],
+      ),
+    ),
+  ),
+)
+
                     ],
                   );
                 },
@@ -257,6 +316,7 @@ class Message {
   final String sender;
   final String text;
   final String timestamp;
+  final String actionType;
 
-  Message({required this.sender, required this.text, required this.timestamp});
+  Message({required this.sender, required this.text, required this.timestamp , required this.actionType});
 }

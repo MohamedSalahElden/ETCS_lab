@@ -1,5 +1,7 @@
 import 'package:etcs_lab_manager/home/subpages/actionHistoryPage.dart';
+import 'package:etcs_lab_manager/signin_up/data/data.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class ItemActions extends StatelessWidget {
   final Map<String, dynamic> item;
@@ -22,7 +24,8 @@ class ItemActions extends StatelessWidget {
             children: [
               // Small Icon Button
               ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
+                  await Provider.of<ComponentProvider>(context, listen: false).getActions(instanceCode);
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) =>  ChatPage(item: item ,  instanceCode: instanceCode)),
