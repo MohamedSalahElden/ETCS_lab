@@ -127,6 +127,7 @@ class _QRScannerState extends State<QRScanner> {
                       bottonType: "return",
                       bottonState: "active",
                       action: () {},
+                      instanceCode: scannedCode,
                     ),
                   ],
                 ),

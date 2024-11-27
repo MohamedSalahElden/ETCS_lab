@@ -155,6 +155,7 @@ void setIsSearch(bool value) {
                                       userComponents.remove(item);
                                       await Provider.of<ComponentProvider>(context, listen: false).returnComponent(itemCode);
                                     },
+                                    instanceCode: item,
                                   ),
                                 ],
                               ) 

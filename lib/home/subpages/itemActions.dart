@@ -1,12 +1,14 @@
+import 'package:etcs_lab_manager/home/subpages/actionHistoryPage.dart';
 import 'package:flutter/material.dart';
 
 class ItemActions extends StatelessWidget {
   final Map<String, dynamic> item;
   final String bottonState;
   final String bottonType;
+  final String instanceCode;
   final VoidCallback action;
 
-  const ItemActions({super.key, required this.item, required this.bottonState,required this.bottonType , required this.action });
+  const ItemActions({super.key, required this.item, required this.bottonState,required this.bottonType , required this.action , required this.instanceCode });
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +22,12 @@ class ItemActions extends StatelessWidget {
             children: [
               // Small Icon Button
               ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) =>  ChatPage(item: item ,  instanceCode: instanceCode)),
+                  );
+                },
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.all(8), // Adjust padding for a smaller button
                   shape: const CircleBorder(), // Circular shape for the button
