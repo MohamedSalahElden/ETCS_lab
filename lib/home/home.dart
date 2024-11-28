@@ -1,6 +1,8 @@
 
 
 import 'package:etcs_lab_manager/home/subpages/about.dart';
+import 'package:etcs_lab_manager/home/subpages/itemDetailsTable.dart';
+import 'package:etcs_lab_manager/home/subpages/itemEditing.dart';
 import 'package:etcs_lab_manager/home/subpages/myItems.dart';
 import 'package:etcs_lab_manager/home/subpages/scan.dart';
 import 'package:etcs_lab_manager/home/subpages/search.dart';
@@ -203,6 +205,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) =>  AboutPage()),
+                  // MaterialPageRoute(builder: (context) =>  ModifyDataScreen()),
+                  // MaterialPageRoute(builder: (context) =>  ItemDetailsTable()),
                 );
               },
             ),

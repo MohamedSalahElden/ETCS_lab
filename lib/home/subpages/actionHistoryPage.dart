@@ -13,23 +13,11 @@ class ChatPage extends StatefulWidget {
   @override
   _ChatPageState createState() => _ChatPageState();
 }
-
 class _ChatPageState extends State<ChatPage> {
-  // final List<Message> messages = [
-  //   Message(sender: "mohamed salah", actionType: "borrow" ,text: "", timestamp: "10:00 AM"),
-  //   Message(sender: "mohamed salah", actionType: "return" ,text: "Hello! How are you?", timestamp: "10:00 AM"),
-  //   Message(sender: "You", actionType: "borrow", text: "I'm good, thanks! How about you?", timestamp: "10:01 AM"),
-  //   Message(sender: "You", actionType: "return", text: "I'm doing well. What are you up to?", timestamp: "10:02 AM"),
-  //   Message(sender: "george safwat", actionType: "borrow", text: "Just working on some Flutter projects.", timestamp: "10:03 AM"),
-  //   Message(sender: "george safwat", actionType: "return", text: "Sounds interesting! Keep it up.", timestamp: "10:05 AM"),
-  //   Message(sender: "mina girgis", actionType: "borrow", text: "Just working on some Flutter projects.", timestamp: "10:03 AM"),
-  //   Message(sender: "mina girgis", actionType: "return", text: "Sounds interesting! Keep it up.", timestamp: "10:05 AM"),
-
-  // ];
-  bool isAtEnd = false;
+  bool hasFetchedActions = false;
+  bool scrolled = false;
 
   final ScrollController _scrollController = ScrollController();
-
   final TextEditingController _messageController = TextEditingController();
   String _selectedOption = "Damaged";
   final List<String> _options = ["Damaged", "Reconfigure", "Set Value"];
@@ -37,28 +25,31 @@ class _ChatPageState extends State<ChatPage> {
   void _scrollToEnd() {
     _scrollController.animateTo(
       _scrollController.position.maxScrollExtent,
-      duration: Duration(seconds: 1),
+      duration: Duration(milliseconds: 500),
       curve: Curves.easeInOut,
     );
   }
 
   Color getCategoryColor(String category) {
-    if(category == "borrow"){return Color.fromARGB(255, 42, 153, 27);}
-    else if(category == "return"){return Color(0xffbf1e2e);}
-    else if(category == "Damaged"){return Colors.black;}
-    else{
+    if (category == "borrow") {
+      return Color.fromARGB(255, 42, 153, 27);
+    } else if (category == "return") {
+      return Color(0xffbf1e2e);
+    } else if (category == "Damaged") {
+      return Colors.black;
+    } else {
       int hash = category.hashCode;
       int red = (hash & 0xFF0000) >> 16;
       int green = (hash & 0x00FF00) >> 8;
       int blue = hash & 0x0000FF;
       return Color.fromARGB(255, red, green, blue);
     }
-    
   }
 
   void _sendMessage() async {
     final text = _messageController.text.trim();
-    await Provider.of<ComponentProvider>(context, listen: false).addAction(widget.instanceCode , _selectedOption , "title" , text);
+    await Provider.of<ComponentProvider>(context, listen: true)
+        .addAction(widget.instanceCode, _selectedOption, "title", text);
     if (text.isNotEmpty) {
       _messageController.clear();
     }
@@ -73,8 +64,26 @@ class _ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) {
     final componentProvider =
         Provider.of<ComponentProvider>(context, listen: true);
-    print("[comp] ${componentProvider.itemActions}");
 
+    // Fetch actions only if it hasn't been fetched yet
+    if (!hasFetchedActions) {
+      componentProvider.getActions(widget.instanceCode);
+      setState(() {
+        hasFetchedActions = true; // Mark as fetched after calling
+      });
+    }
+
+    // Trigger scroll to end after the widget is built
+    if (componentProvider.itemActions.isNotEmpty && !scrolled) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToEnd();
+        setState(() {
+          scrolled = true; // Ensure we only scroll once
+        });
+      });
+    }
+
+    print("[comp] ${componentProvider.itemActions}");
     return Scaffold(
       appBar: AppBar(
         flexibleSpace: Container(
@@ -87,11 +96,9 @@ class _ChatPageState extends State<ChatPage> {
           ),
         ),
         title: Padding(
-          padding:
-              const EdgeInsets.all(0), // Padding to give space from the left
+          padding: const EdgeInsets.all(0), // Padding to give space from the left
           child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.start, // Align text to the left
+            crossAxisAlignment: CrossAxisAlignment.start, // Align text to the left
             children: [
               Text(
                 widget.item["item name"] ?? "Default Title",
@@ -115,7 +122,7 @@ class _ChatPageState extends State<ChatPage> {
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(12.0),
+        padding: const EdgeInsets.all(10.0),
         child: Column(
           children: [
             // Messages List
@@ -166,74 +173,98 @@ class _ChatPageState extends State<ChatPage> {
                               backgroundColor: getCategoryColor(user_name),
                             ),
                           const SizedBox(width: 8),
-                          Chip(
-                            label: Text(action["action type"],
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 10)),
-                            backgroundColor: getCategoryColor(action["action type"]),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                  20), // Set the desired radius
-                            ),
-                            side: BorderSide.none,
-                          ),
+                          Padding(
+                              padding: EdgeInsets.fromLTRB(0, 0, 6, 0),
+                              child: Column(
+                                children: [
+                                  Align(
+                                    alignment: isMe
+                                        ? Alignment.centerRight
+                                        : Alignment.centerLeft,
+                                    child: Container(
+                                      width: MediaQuery.of(context).size.width *
+                                          0.8,
+                                      margin: const EdgeInsets.symmetric(
+                                          vertical: 3.0),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16.0,
+                                        vertical: 10.0,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: isMe
+                                            ? const Color.fromARGB(
+                                                255, 255, 255, 255)
+                                            : const Color.fromARGB(
+                                                255, 255, 255, 255),
+                                        borderRadius:
+                                            BorderRadius.circular(16.0),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(
+                                                0.2), // Shadow color
+                                            blurRadius:
+                                                6.0, // Spread of the shadow
+                                            offset: Offset(
+                                                0, 3), // Offset of the shadow
+                                          ),
+                                        ],
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment: isMe
+                                            ? CrossAxisAlignment.end
+                                            : CrossAxisAlignment.start,
+                                        children: [
+                                          Chip(
+                                            label: Text(
+                                              action["action type"],
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 10,
+                                              ),
+                                            ),
+                                            backgroundColor: getCategoryColor(
+                                                action["action type"]),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(
+                                                  20), // Set the desired radius
+                                            ),
+                                            side: BorderSide.none,
+                                            padding: EdgeInsets.symmetric(
+                                                horizontal: 10,
+                                                vertical: 0), // Adjust padding
+                                          ),
+                                          if (action["action details"] != "")
+                                            Text(
+                                              action["action details"],
+                                              style: TextStyle(fontSize: 16.0),
+                                              softWrap:
+                                                  true, // Ensures the text wraps within the container
+                                              overflow: TextOverflow
+                                                  .visible, // Prevent text from being cut off
+                                            ),
+                                          if (action["date"] != "")
+                                            Padding(
+                                              padding: EdgeInsets.only(left: 0),
+                                              child: Text(
+                                                action["date"],
+                                                style: TextStyle(
+                                                  fontSize: 12.0,
+                                                  color: Colors.grey[700],
+                                                ),
+                                              ),
+                                            ),
+                                          SizedBox(height: 4.0),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ))
                         ],
                       ),
-                      if (action["date"] != "")
-                        Padding(
-                          padding: EdgeInsets.only(left: 45),
-                          child: Text(
-                            action["date"],
-                            style: TextStyle(
-                              fontSize: 12.0,
-                              color: Colors.grey[700],
-                            ),
-                          ),
-                        ),
+
                       SizedBox(height: 4.0),
                       // Message Bubble
-                      if (action["action title"] != "")
-                        Padding(
-                          padding: EdgeInsets.only(left: 40),
-                          child: Align(
-                            alignment: isMe
-                                ? Alignment.centerRight
-                                : Alignment.centerLeft,
-                            child: Container(
-                              margin: const EdgeInsets.symmetric(vertical: 4.0),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16.0,
-                                vertical: 10.0,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isMe
-                                    ? const Color.fromARGB(255, 255, 255, 255)
-                                    : const Color.fromARGB(255, 255, 255, 255),
-                                borderRadius: BorderRadius.circular(12.0),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black
-                                        .withOpacity(0.2), // Shadow color
-                                    blurRadius: 6.0, // Spread of the shadow
-                                    offset:
-                                        Offset(0, 3), // Offset of the shadow
-                                  ),
-                                ],
-                              ),
-                              child: Column(
-                                crossAxisAlignment: isMe
-                                    ? CrossAxisAlignment.end
-                                    : CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    action["action details"],
-                                    style: TextStyle(fontSize: 16.0),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        )
                     ],
                   );
                 },
@@ -249,10 +280,7 @@ class _ChatPageState extends State<ChatPage> {
                   child: DropdownButtonFormField<String>(
                     value: _selectedOption,
                     items: _options.map((String option) {
-                      return DropdownMenuItem<String>(
-                        value: option,
-                        child: Text(option),
-                      );
+                      return DropdownMenuItem<String>(value: option, child: Text(option));
                     }).toList(),
                     onChanged: (value) {
                       setState(() {
@@ -275,31 +303,23 @@ class _ChatPageState extends State<ChatPage> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(100.0),
-                          border: Border.all(color: Colors.grey[400]!),
+                          border: Border.all(color: Colors.grey),
                         ),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8.0, vertical: 8.0),
-                        child: TextField(
+                        child: TextFormField(
                           controller: _messageController,
-                          keyboardType: TextInputType
-                              .multiline, // Allows multi-line input
-                          maxLines: null, // Expands to fit text
-                          minLines: 1, // Initial height
+                          maxLines: 1,
                           decoration: const InputDecoration(
-                            hintText: "Write your action deatils...",
+                            hintText: "Message",
+                            hintStyle: TextStyle(fontSize: 16.0),
+                            contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 16.0),
                             border: InputBorder.none,
-                            filled: true,
-                            fillColor: Colors.transparent,
                           ),
                         ),
                       ),
                     ),
-                    SizedBox(width: 8.0),
-                    Container(
-                      child: IconButton(
-                        icon: Icon(Icons.add, color: Color(0xffbf1e2e)),
-                        onPressed: _sendMessage,
-                      ),
+                    IconButton(
+                      onPressed: _sendMessage,
+                      icon: Icon(Icons.send, color: Colors.blue),
                     ),
                   ],
                 ),

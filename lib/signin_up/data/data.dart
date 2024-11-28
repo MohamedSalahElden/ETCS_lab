@@ -278,6 +278,9 @@ class ComponentProvider extends ChangeNotifier {
   }
 
   Future<void> getActions(String componentCode) async {
+    itemActions = [];
+    // notifyListeners();
+
     DocumentSnapshot documentSnapshot =
         await _firestore.collection("actions").doc(componentCode).get();
 

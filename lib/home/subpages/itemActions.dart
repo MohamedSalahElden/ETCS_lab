@@ -1,7 +1,6 @@
+import 'package:etcs_lab_manager/home/itemDetailsPage.dart';
 import 'package:etcs_lab_manager/home/subpages/actionHistoryPage.dart';
-import 'package:etcs_lab_manager/signin_up/data/data.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class ItemActions extends StatelessWidget {
   final Map<String, dynamic> item;
@@ -14,6 +13,7 @@ class ItemActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    bool isInstance = instanceCode != "" ;
     return Container(
       padding: const EdgeInsets.all(0.0), // Add padding around the card
       child: Column(
@@ -25,18 +25,32 @@ class ItemActions extends StatelessWidget {
               // Small Icon Button
               ElevatedButton(
                 onPressed: () async {
-                  await Provider.of<ComponentProvider>(context, listen: false).getActions(instanceCode);
-                  Navigator.push(
+                  // await Provider.of<ComponentProvider>(context, listen: false).getActions(instanceCode);
+                  if(isInstance){
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) =>  ChatPage(item: item ,  instanceCode: instanceCode)),  
+                    );
+
+                  }
+                  else{
+                    Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) =>  ChatPage(item: item ,  instanceCode: instanceCode)),
+                    
+                    MaterialPageRoute(builder: (context) =>  ItemDetailsPage(item: item)),
+                    
                   );
+                  }
+                  
                 },
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.all(8), // Adjust padding for a smaller button
                   shape: const CircleBorder(), // Circular shape for the button
                   backgroundColor: const Color.fromARGB(255, 175, 175, 175), // Button color
                 ),
-                child: const Icon(Icons.info, size: 24, color: Colors.white), // Info icon
+                child:  Icon(
+                  isInstance ? Icons.history : Icons.info, 
+                  size: 24, color: Colors.white), // Info icon
               ),
               const SizedBox(width: 16), // Space between the buttons
               bottonWithState(bottonState , bottonType),
