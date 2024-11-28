@@ -17,7 +17,7 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
   
   @override
   Widget build(BuildContext context) {
-  final componentProvider = Provider.of<ComponentProvider>(context, listen: true);
+  Provider.of<ComponentProvider>(context, listen: true);
     List<String> instanceKeys = widget.item["instances"].keys.toList();
     return Scaffold(
       appBar: AppBar(
@@ -86,7 +86,6 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
               physics: const NeverScrollableScrollPhysics(), // Prevents nested scroll issues
               itemCount: instanceKeys.length,
               itemBuilder: (context, index) {
-                final instance = widget.item["instances"][index];
                 print("[instance] ${instanceKeys[index]}");
                 bool isBorrowed = widget.item["instances"][instanceKeys[index]]["borrowed_by"] != "";
                 bool isWorking = widget.item["instances"][instanceKeys[index]]["working_status"] == "working";

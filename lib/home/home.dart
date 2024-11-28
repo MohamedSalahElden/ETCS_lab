@@ -1,8 +1,6 @@
 
 
 import 'package:etcs_lab_manager/home/subpages/about.dart';
-import 'package:etcs_lab_manager/home/subpages/itemDetailsTable.dart';
-import 'package:etcs_lab_manager/home/subpages/itemEditing.dart';
 import 'package:etcs_lab_manager/home/subpages/myItems.dart';
 import 'package:etcs_lab_manager/home/subpages/scan.dart';
 import 'package:etcs_lab_manager/home/subpages/search.dart';
