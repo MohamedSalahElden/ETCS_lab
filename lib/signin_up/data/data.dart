@@ -297,10 +297,9 @@ class ComponentProvider extends ChangeNotifier {
   }
 
   Future<void> addAction(String componentCode, String actionType,
-      String actionTitle, String actionDetails) async {
-    FirebaseFirestore firestore = FirebaseFirestore.instance;
+    String actionTitle, String actionDetails) async {
     final user = FirebaseAuth.instance.currentUser;
-    int numberOfSuccessfullyBorrowedItems = 0;
+    
     try {
       if (user != null) {
         final userUID = user.uid;
@@ -325,7 +324,6 @@ class ComponentProvider extends ChangeNotifier {
           ]),
         });
         printmessage("item $componentCode borrowed successfully");
-        numberOfSuccessfullyBorrowedItems += 1;
       } else {
         // no user logged in
         printmessage("no user logged in!");
