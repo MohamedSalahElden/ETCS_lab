@@ -19,13 +19,13 @@ class _ChatPageState extends State<ChatPage> {
 
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _messageController = TextEditingController();
-  String _selectedOption = "Damaged";
-  final List<String> _options = ["Damaged", "Reconfigure", "Set Value"];
+  String _selectedOption = "Set Value";
+  final List<String> _options = ["Set Value" , "Reconfigure", "Damaged", "Other" ];
 
   void _scrollToEnd() {
     _scrollController.animateTo(
       _scrollController.position.maxScrollExtent,
-      duration: Duration(milliseconds: 500),
+      duration: Duration(milliseconds: 200),
       curve: Curves.easeInOut,
     );
   }
@@ -48,11 +48,12 @@ class _ChatPageState extends State<ChatPage> {
 
   void _sendMessage() async {
     final text = _messageController.text.trim();
-    await Provider.of<ComponentProvider>(context, listen: true)
+    await Provider.of<ComponentProvider>(context, listen: false)
         .addAction(widget.instanceCode, _selectedOption, "title", text);
     if (text.isNotEmpty) {
       _messageController.clear();
     }
+    scrolled = false;
   }
 
   @override
@@ -94,6 +95,13 @@ class _ChatPageState extends State<ChatPage> {
               end: Alignment.bottomRight,
             ),
           ),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          color: Colors.white,
+          onPressed: () {
+            Navigator.pop(context); // Navigate to the previous screen
+          },
         ),
         title: Padding(
           padding: const EdgeInsets.all(0), // Padding to give space from the left
@@ -309,7 +317,7 @@ class _ChatPageState extends State<ChatPage> {
                           controller: _messageController,
                           maxLines: 1,
                           decoration: const InputDecoration(
-                            hintText: "Message",
+                            hintText: "Write Your Action Here!",
                             hintStyle: TextStyle(fontSize: 16.0),
                             contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 16.0),
                             border: InputBorder.none,
@@ -319,7 +327,7 @@ class _ChatPageState extends State<ChatPage> {
                     ),
                     IconButton(
                       onPressed: _sendMessage,
-                      icon: Icon(Icons.send, color: Colors.blue),
+                      icon: Icon(Icons.add_box_outlined,size: 30 ,  color: Colors.blue),
                     ),
                   ],
                 ),

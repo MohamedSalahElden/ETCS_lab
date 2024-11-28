@@ -323,7 +323,7 @@ class ComponentProvider extends ChangeNotifier {
             }
           ]),
         });
-        printmessage("item $componentCode borrowed successfully");
+        printmessage("Action added successfully");
       } else {
         // no user logged in
         printmessage("no user logged in!");
@@ -335,76 +335,3 @@ class ComponentProvider extends ChangeNotifier {
     getActions(componentCode);
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// import 'package:cloud_firestore/cloud_firestore.dart';
-// import 'package:flutter/material.dart';
-
-// class DataService extends ChangeNotifier {
-//   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-//   // Holds the fetched items
-//   List<Map<String, dynamic>> _allItems = [];
-
-//   // Accessor to retrieve the items
-//   List<Map<String, dynamic>> get allItems => _allItems;
-
-//   // Fetch delivered items
-//   Future<void> getDeliveredItems() async {
-//     print("############################################################");
-//     try {
-//       QuerySnapshot querySnapshot = await _firestore
-//           .collection('items')
-//           .where('Status', isEqualTo: 'DELIVERED')
-//           .get();
-
-//       // Update the list of items
-//       _allItems = querySnapshot.docs
-//           .map((doc) => doc.data() as Map<String, dynamic>)
-//           .toList();
-
-//       print("Fetched delivered items: $_allItems");
-
-//       // Notify listeners to rebuild UI or update dependent state
-//       notifyListeners();
-//     } catch (e) {
-//       print('Error fetching data: $e');
-//     }
-//   }
-// }

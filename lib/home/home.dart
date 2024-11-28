@@ -192,12 +192,12 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ),
             ListTile(
-              title: const Text('Account'),
+              title: const Text('Account' , style: TextStyle(color: Colors.black),),
               selected: _selectedIndex == 0,
               onTap: () {},
             ),
             ListTile(
-              title: const Text('About'),
+              title: const Text('About' , style: TextStyle(color: Colors.black),),
               selected: _selectedIndex == 0,
               onTap: () {
                 Navigator.push(
