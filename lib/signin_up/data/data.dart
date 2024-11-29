@@ -13,6 +13,12 @@ class ComponentProvider extends ChangeNotifier {
   Map<String, dynamic> userComponents = {};
   List<dynamic> itemActions = [];
 
+
+  int getIndexOfItemID(String ItemID){
+    int index = allComponents.indexWhere((element) => element["item id"] == ItemID);
+    return index;
+  }
+
   void searchOnUserComponents(searchString) {
     userComponentsToView = {};
     Map<String, dynamic> copyOfUserComponents = userComponents;
@@ -55,8 +61,6 @@ class ComponentProvider extends ChangeNotifier {
     componentsToView = interrist_components;
     notifyListeners();
   }
-
-  // Firebase setup should be added here (e.g., FirebaseFirestore instance).
 
   Future<void> refreshAll() async {
     initializeComponents();
@@ -176,7 +180,7 @@ class ComponentProvider extends ChangeNotifier {
       try {
         if (user != null) {
           final userUID = user.uid;
-          if (isBorrowed(componentCode) == true) {
+          if (await isBorrowed(componentCode) == true) {
           } else {
             String currentDateTime = '';
             DateTime now = DateTime.now();
@@ -334,4 +338,30 @@ class ComponentProvider extends ChangeNotifier {
 
     getActions(componentCode);
   }
+
+  
+  Future<void> EditComponent(String componentID , Map<String , dynamic> data ) async {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+    
+      try {
+        await firestore.collection('items').doc(componentID).update({
+          'item name': data["item name"],
+          'technology': data["technology"],
+          'details': data["details"],
+          'link': data["link"],
+          'notes': data["notes"],
+        });
+        
+      } catch (e) {
+        printmessage("error occured");
+      }
+    
+    fetchBorrowedItems();
+    initializeComponents();
+    notifyListeners();
+  }
+
+
+
 }

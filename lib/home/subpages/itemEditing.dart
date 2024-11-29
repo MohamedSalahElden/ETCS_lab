@@ -1,53 +1,28 @@
+import 'package:etcs_lab_manager/signin_up/data/data.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-class ModifyDataScreen extends StatefulWidget {
+class ModifyitemScreen extends StatefulWidget {
+  final Map<String, dynamic> item; // Make item a required parameter
+
+  // Modify constructor to accept the required item parameter
+  ModifyitemScreen({required this.item});
+
   @override
-  _ModifyDataScreenState createState() => _ModifyDataScreenState();
+  _ModifyitemScreenState createState() => _ModifyitemScreenState();
 }
 
-class _ModifyDataScreenState extends State<ModifyDataScreen> {
+class _ModifyitemScreenState extends State<ModifyitemScreen> {
   final _formKey = GlobalKey<FormState>();
   
-  // Example data to populate fields
-  Map<String, dynamic> data = {
-    "item id": "3a30cf0fe88e",
-    "item name": "SparkFun LTE CAT M1/NB-IoT Shield - SARA-R4",
-    "related to": "Protocol",
-    "type": "HW",
-    "section": "Wireless",
-    "category": "device",
-    "technology": "LTE",
-    "quantity": 1,
-    "details": "SparkFun LTE CAT M1/NB-IoT Shield - SARA-R4",
-    "model": "",
-    "link": "https://www.sparkfun.com/products/13678",
-    "total price": "",
-    "notes": "",
-    "arrival date": "",
-    "instances": {
-      "3a30cf0fe88e0101": {
-        "working_status": "working",
-        "status": "available",
-        "labeled": "false",
-        "location": "",
-        "borrowed_by": "",
-        "date_borrowed": "",
-      }
-    }
-  };
+  late Map<String, dynamic> item; // Declare a variable to hold the item
 
   // Controllers for the fields
   final TextEditingController itemNameController = TextEditingController();
-  final TextEditingController relatedToController = TextEditingController();
-  final TextEditingController typeController = TextEditingController();
-  final TextEditingController sectionController = TextEditingController();
-  final TextEditingController categoryController = TextEditingController();
   final TextEditingController technologyController = TextEditingController();
-  final TextEditingController quantityController = TextEditingController();
   final TextEditingController detailsController = TextEditingController();
   final TextEditingController linkController = TextEditingController();
   final TextEditingController notesController = TextEditingController();
-  final TextEditingController arrivalDateController = TextEditingController();
 
   // Instance-specific fields
   String workingStatus = "working";
@@ -56,84 +31,64 @@ class _ModifyDataScreenState extends State<ModifyDataScreen> {
   @override
   void initState() {
     super.initState();
-    // Initialize controllers with default data
-    itemNameController.text = data["item name"];
-    relatedToController.text = data["related to"];
-    typeController.text = data["type"];
-    sectionController.text = data["section"];
-    categoryController.text = data["category"];
-    technologyController.text = data["technology"];
-    quantityController.text = data["quantity"].toString();
-    detailsController.text = data["details"];
-    linkController.text = data["link"];
-    notesController.text = data["notes"];
-    arrivalDateController.text = data["arrival date"];
-    workingStatus = data["instances"]["3a30cf0fe88e0101"]["working_status"];
-    status = data["instances"]["3a30cf0fe88e0101"]["status"];
+    item = widget.item; // Initialize item from the passed parameter
+
+    // Initialize controllers with default item
+    itemNameController.text = item["item name"];
+    technologyController.text = item["technology"];
+    detailsController.text = item["details"];
+    linkController.text = item["link"];
+    notesController.text = item["notes"];
+    
+    
   }
 
   @override
   void dispose() {
     // Dispose controllers when done
     itemNameController.dispose();
-    relatedToController.dispose();
-    typeController.dispose();
-    sectionController.dispose();
-    categoryController.dispose();
     technologyController.dispose();
-    quantityController.dispose();
     detailsController.dispose();
     linkController.dispose();
     notesController.dispose();
-    arrivalDateController.dispose();
     super.dispose();
   }
 
-  void applyChanges() {
+  Future<void> applyChanges() async {
     if (_formKey.currentState!.validate()) {
-      setState(() {
-        data["item name"] = itemNameController.text;
-        data["related to"] = relatedToController.text;
-        data["type"] = typeController.text;
-        data["section"] = sectionController.text;
-        data["category"] = categoryController.text;
-        data["technology"] = technologyController.text;
-        data["quantity"] = int.tryParse(quantityController.text) ?? 0;
-        data["details"] = detailsController.text;
-        data["link"] = linkController.text;
-        data["notes"] = notesController.text;
-        data["arrival date"] = arrivalDateController.text;
-        data["instances"]["3a30cf0fe88e0101"]["working_status"] = workingStatus;
-        data["instances"]["3a30cf0fe88e0101"]["status"] = status;
-      });
+      Map<String , dynamic> data = {};
+      data["item name"] = itemNameController.text;
+      data["technology"] = technologyController.text;
+      data["details"] = detailsController.text;
+      data["link"] = linkController.text;
+      data["notes"] = notesController.text;
+      print("[item] $item");
+      await Provider.of<ComponentProvider>(context, listen: false).EditComponent(item["item id"] , data);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Changes applied successfully!')),
       );
+
+      Navigator.pop(context);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Modify Data', style: TextStyle(color: Colors.white),) , backgroundColor: const Color(0xffbf1e2e) ,) ,
+      appBar: AppBar(title: Text(item["item name"], style: TextStyle(color: Colors.white),), backgroundColor: const Color(0xffbf1e2e),),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(16.0),
+        padding: EdgeInsets.fromLTRB(30, 10, 30, 10),
         child: Form(
           key: _formKey,
+
           child: Column(
             children: [
-              buildTextField("Item Name", itemNameController),
-              buildTextField("Related To", relatedToController),
-              buildTextField("Type", typeController),
-              buildTextField("Section", sectionController),
-              buildTextField("Category", categoryController),
-              buildTextField("Technology", technologyController),
-              buildTextField("Quantity", quantityController, keyboardType: TextInputType.number),
-              buildTextField("Details", detailsController),
-              buildTextField("Link", linkController),
-              buildTextField("Notes", notesController),
-              buildTextField("Arrival Date", arrivalDateController),
+              buildTextField(isRequired : true , "Item Name", itemNameController),
+              buildTextField(isRequired : true ,"Technology", technologyController),
+              buildTextField(isRequired : false ,"Details", detailsController),
+              buildTextField(isRequired : false ,"Link", linkController),
+              buildTextField(isRequired : false ,"Notes", notesController),
               SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 value: workingStatus,
@@ -169,7 +124,7 @@ class _ModifyDataScreenState extends State<ModifyDataScreen> {
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: applyChanges,
-                child: Text("Apply Changes" , style: TextStyle(color: Colors.white),),
+                child: Text("Apply Changes", style: TextStyle(color: Colors.white),),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color.fromARGB(255, 42, 153, 27),
                   minimumSize: Size(double.infinity, 50),
@@ -178,27 +133,33 @@ class _ModifyDataScreenState extends State<ModifyDataScreen> {
               ),
             ],
           ),
+        
         ),
       ),
     );
   }
 
-  Widget buildTextField(String label, TextEditingController controller, {TextInputType keyboardType = TextInputType.text}) {
+  Widget buildTextField(  String label, TextEditingController controller, {TextInputType keyboardType = TextInputType.text, required bool isRequired} ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextFormField(
         controller: controller,
         decoration: InputDecoration(
           labelText: label,
-          border: OutlineInputBorder(),
+          // border: OutlineInputBorder(),
         ),
-        keyboardType: keyboardType,
-        validator: (value) {
-          if (value == null || value.isEmpty) {
-            return 'Please enter $label';
-          }
-          return null;
-        },
+         maxLines: null, // Wraps text to multiple lines
+          minLines: 1, // Shows at least 3 lines initially
+          keyboardType: TextInputType.multiline,
+          
+          validator: (value) {
+            if (isRequired){
+              if (value == null || value.isEmpty) {
+              return 'Please enter some text';
+            }
+            return null;
+            }
+          },
       ),
     );
   }

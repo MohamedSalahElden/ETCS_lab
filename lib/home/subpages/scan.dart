@@ -17,6 +17,7 @@ class QRScanner extends StatefulWidget {
 }
 
 class _QRScannerState extends State<QRScanner> {
+  bool isBorrowed = false;
   final MobileScannerController controller = MobileScannerController(
     torchEnabled: false,
   );
@@ -57,6 +58,7 @@ class _QRScannerState extends State<QRScanner> {
     final componentProvider =
         Provider.of<ComponentProvider>(context, listen: false);
     parentItem = componentProvider.getItemFromInstance(scannedCode);
+    isBorrowed = await componentProvider.isBorrowed(scannedCode);
 
     setState(() {
       _isBottomSheetVisible = true;
@@ -96,22 +98,38 @@ class _QRScannerState extends State<QRScanner> {
                     ),
                     title: Row(
                       children: [
-                        Text(
-                          parentItem.containsKey("item name") &&
-                                  parentItem["item name"] != null
-                              ? parentItem["item name"]!
-                              : "",
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold, color: Colors.black),
+                        // Container to ensure the text wraps correctly and takes up available space
+                        Expanded(
+                          // Use Expanded to ensure the text takes up available space within the Row
+                          child: Container(
+                            width: double
+                                .infinity, // Ensure the container takes up all available width
+                            child: Text(
+                              parentItem.containsKey("item name") &&
+                                      parentItem["item name"] != null
+                                  ? parentItem["item name"]!
+                                  : "",
+                              style: TextStyle(fontSize: 16.0),
+                              softWrap:
+                                  true, // Ensures the text wraps within the container
+                              overflow: TextOverflow
+                                  .visible, // Use ellipsis to truncate the overflowed text if necessary
+                            ),
+                          ),
                         ),
+
+                        // IconButton to navigate to the ModifyDataScreen
                         IconButton(
                           icon: const Icon(Icons.edit,
-                              size: 20, color: Colors.black), // Copy icon
+                              size: 20, color: Colors.black), // Edit icon
                           onPressed: () {
-                            // Copy the scannedCode to the clipboard
+                            // Navigate to ModifyDataScreen when the button is pressed
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) =>  ModifyDataScreen()),
+                              MaterialPageRoute(
+                                  builder: (context) => ModifyitemScreen(
+                                        item: parentItem,
+                                      )),
                             );
                           },
                         ),
@@ -144,6 +162,7 @@ class _QRScannerState extends State<QRScanner> {
                     child: Column(
                       children: [
                         ItemCard(item: parentItem),
+                        if(!isBorrowed)
                         ItemActions(
                           item: parentItem,
                           bottonType: "borrow",
@@ -156,6 +175,17 @@ class _QRScannerState extends State<QRScanner> {
                           },
                           instanceCode: scannedCode,
                         ),
+                        if(isBorrowed)
+                        ItemActions(
+                          item: parentItem,
+                          bottonType: "borrow",
+                          bottonState: "inactive",
+                          action: () async {
+                            
+                          },
+                          instanceCode: scannedCode,
+                        ),
+
                       ],
                     ),
                   ),
@@ -258,7 +288,8 @@ class _QRScannerState extends State<QRScanner> {
 
   @override
   void dispose() {
-    controller.dispose();
     super.dispose();
+    // Make sure to dispose the controller when the widget is disposed
+    controller.stop();
   }
 }

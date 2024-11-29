@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ItemCard extends StatelessWidget {
   final Map<String , dynamic> item; 
@@ -14,6 +15,17 @@ class ItemCard extends StatelessWidget {
     int blue = hash & 0x0000FF;
     return Color.fromARGB(255, red, green, blue);
   }
+
+
+void _launchURL(String query) async {
+  // query = query.replaceAll(' ', '+');
+  final Uri url = Uri.parse('https://www.google.com/search?q=${Uri.encodeComponent(query)}');
+  if (await canLaunchUrl(url)) {  // Check if the URL can be launched
+    await launchUrl(url);  // Launch the URL
+  } else {
+    print('Could not launch $url');
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -44,6 +56,39 @@ class ItemCard extends StatelessWidget {
                     child:  Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // 
+
+                        IconButton(
+  icon: Container(
+    child: SizedBox(
+      width: 30.0,  // Adjust the width
+      height: 30.0, // Adjust the height
+      child: Image.asset('assets/google_PNG19635.png',
+        fit: BoxFit.cover,
+      ),
+    ),
+  ),
+  onPressed: () {
+    _launchURL(item['item name']);
+  },
+),
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                        // 
                         const SizedBox(width: 8),
                         Chip(
                           label: Text("Total: ${item['quantity']}" , style: TextStyle(color: Colors.white) ),

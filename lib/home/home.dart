@@ -85,9 +85,6 @@ class _MyHomePageState extends State<MyHomePage> {
           Provider.of<ComponentProvider>(context, listen: false).searchOnAllComponents(string);
         }
       }
-      
-      
-    
     }
 
 
