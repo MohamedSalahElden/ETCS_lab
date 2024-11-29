@@ -178,7 +178,7 @@ class _QRScannerState extends State<QRScanner> {
                         if(isBorrowed)
                         ItemActions(
                           item: parentItem,
-                          bottonType: "borrow",
+                          bottonType: "borrowed",
                           bottonState: "inactive",
                           action: () async {
                             
