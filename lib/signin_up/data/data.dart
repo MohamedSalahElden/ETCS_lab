@@ -170,6 +170,31 @@ class ComponentProvider extends ChangeNotifier {
     return false;
   }
 
+
+  Future<bool> islabeled(String componentCode) async {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+    String itemId = componentCode.substring(0, 12);
+    try {
+      DocumentSnapshot itemDoc =
+          await firestore.collection('items').doc(itemId).get();
+
+      if (itemDoc.exists) {
+        Map<String, dynamic> itemData = itemDoc.data() as Map<String, dynamic>;
+        if (itemData["instances"][componentCode]["labeled"] == "true") {
+          return true;
+        } else {
+          print(
+              "[salah] [isBorrowed] $componentCode is borrowed by ${itemData["instances"][componentCode]["borrowed_by"]}");
+          return false;
+        }
+      }
+    } catch (e) {
+      print("error while checking for $componentCode");
+      return false;
+    }
+    return false;
+  }
+
   Future<void> borrowComponent(List<String> componentCodeList) async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     final user = FirebaseAuth.instance.currentUser;
@@ -206,6 +231,28 @@ class ComponentProvider extends ChangeNotifier {
     } else {
       printmessage("not all components was successfully borrowed");
     }
+    fetchBorrowedItems();
+    initializeComponents();
+  }
+
+
+Future<void> setLabled(String componentCode) async {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+    final user = FirebaseAuth.instance.currentUser;
+    int numberOfSuccessfullyBorrowedItems = 0;
+
+    
+      String itemId = componentCode.substring(0, 12);
+
+      await firestore.collection('items').doc(itemId).update({
+        'instances.$componentCode.labeled': "true",
+      });
+      addAction(componentCode, "set value", "label", "component is now labeled in lab");
+      printmessage("item $componentCode borrowed successfully");
+      numberOfSuccessfullyBorrowedItems += 1;
+          
+      
+    
     fetchBorrowedItems();
     initializeComponents();
   }

@@ -18,6 +18,7 @@ class QRScanner extends StatefulWidget {
 
 class _QRScannerState extends State<QRScanner> {
   bool isBorrowed = false;
+  bool islabeled = false;
   final MobileScannerController controller = MobileScannerController(
     torchEnabled: false,
   );
@@ -55,11 +56,18 @@ class _QRScannerState extends State<QRScanner> {
     if (barcodes.isEmpty || _isBottomSheetVisible) return;
 
     final String scannedCode = barcodes.last.rawValue ?? 'Unknown code';
+
     final componentProvider =
         Provider.of<ComponentProvider>(context, listen: false);
     parentItem = componentProvider.getItemFromInstance(scannedCode);
     isBorrowed = await componentProvider.isBorrowed(scannedCode);
-
+    islabeled = await componentProvider.islabeled(scannedCode);
+    if(!islabeled){
+      await Provider.of<ComponentProvider>(context,
+            listen: false)
+        .setLabled(scannedCode);
+    }
+    
     setState(() {
       _isBottomSheetVisible = true;
     });
@@ -172,6 +180,8 @@ class _QRScannerState extends State<QRScanner> {
                             await Provider.of<ComponentProvider>(context,
                                     listen: false)
                                 .borrowComponent([scannedCode]);
+                            
+                            
                           },
                           instanceCode: scannedCode,
                         ),

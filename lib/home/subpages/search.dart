@@ -214,7 +214,13 @@ void setIsSearch(bool value) {
                     mainAxisSize: MainAxisSize.min,
                     children: selectedItems.entries.map((entry) {
                       return CheckboxListTile(
-                        title: Text(entry.key),
+                        title: Row(
+                          children: [
+                            Icon(Icons.qr_code , color: itemDict["instances"][entry.key]["labeled"]  == "true" ?  Color.fromARGB(255, 42, 153, 27) :  Colors.black12,),
+                            SizedBox(width: 8,),
+                            Text(entry.key),
+                          ],
+                        ),
                         value: entry.value,
                         onChanged: (bool? value) {
                           setState(() {
